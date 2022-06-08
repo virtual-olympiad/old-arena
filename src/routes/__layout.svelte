@@ -1,7 +1,7 @@
 <script>
 	import '../app.scss';
 
-	import { Graphic } from '@smui/list';
+	import Button, { Label, Icon} from '@smui/button';
 </script>
 
 <svelte:head>
@@ -26,16 +26,25 @@
 
 <nav>
 	<div class = "logo-wrapper">
-		<img class = "logo" src = "vo_stroke.png">
-		Virtual Olympiad
+		<img class = "logo" src = "vo_stroke.png" alt = "Virtual Olympiad Logo">
 	</div>
-	<a href = "">
-		<span class="material-icons">
-			login
-		</span>
-	</a>
+
+	Virtual Olympiad
+
+	<div class = "links-wrapper">
+		<Button href = "" target = "_blank">
+			<Icon class="material-icons">
+				login
+			</Icon>
+			<Label>
+				Login
+			</Label>
+		</Button>
+	</div>
 </nav>
 <slot />
+<!-- Footer Copyright -->
+<footer>Math et al</footer>
 
 <style lang="scss">
 	nav {
@@ -44,7 +53,7 @@
 		align-items: center;
 		justify-content: flex-end;
 
-		background-color: #5684C2;
+		background-color: rgba(255, 255, 255, 100);
 
 		.logo-wrapper {
 			margin-right: auto;
@@ -60,6 +69,13 @@
 			}
 		}
 
+		.links-wrapper {
+			margin-left: auto;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
 		a {
 			margin: 0 .75rem;
 
@@ -67,5 +83,12 @@
 				margin: 0;
 			}
 		}
+	}
+
+	footer {
+		position: absolute;
+		bottom: 0;
+
+		padding: .5rem;
 	}
 </style>
