@@ -14,12 +14,15 @@
 		"format": "prettier --ignore-path .gitignore --write --plugin-search-dir=. ."
 	},
 	"devDependencies": {
+		"@material/segmented-button": "^14.0.0",
 		"@material/typography": "^13.0.0",
 		"@playwright/test": "^1.21.0",
 		"@smui/checkbox": "^6.0.0-beta.16",
 		"@smui/chips": "^6.0.0-beta.16",
 		"@smui/drawer": "^6.0.0-beta.16",
+		"@smui/fab": "^6.0.0-beta.16",
 		"@smui/form-field": "^6.0.0-beta.16",
+		"@smui/icon-button": "^6.0.0-beta.16",
 		"@smui/list": "^6.0.0-beta.16",
 		"@smui/paper": "^6.0.0-beta.16",
 		"@smui/radio": "^6.0.0-beta.16",
@@ -30,6 +33,7 @@
 		"@smui/tab": "^6.0.0-beta.16",
 		"@smui/tab-bar": "^6.0.0-beta.16",
 		"@smui/textfield": "^6.0.0-beta.16",
+		"@smui/tooltip": "^6.0.0-beta.16",
 		"@sveltejs/adapter-auto": "next",
 		"@sveltejs/kit": "next",
 		"@typescript-eslint/eslint-plugin": "^5.10.1",

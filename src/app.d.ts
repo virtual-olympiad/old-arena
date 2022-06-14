@@ -2,11 +2,15 @@
 
 import 'svelte';
 
+type RoomMode = 'Normal' | 'Relay' | 'Showdown';
+
 interface RoomAbstract {
 	name: string;
-	mode: roomMode;
+	description: string;
+	mode: RoomMode;
 	playerCount: number;
 	playerLimit: number;
+	teamsEnabled: boolean;
 }
 
 // See https://kit.svelte.dev/docs/types#app

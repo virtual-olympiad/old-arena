@@ -24,29 +24,39 @@
 	/>
 </svelte:head>
 
-<nav>
-	<div class = "logo-wrapper">
-		<img class = "logo" src = "vo_stroke.png" alt = "Virtual Olympiad Logo">
-	</div>
+<div class = "svelte">
+	<nav>
+		<div class = "logo-wrapper">
+			<img class = "logo" src = "vo_stroke.png" alt = "Virtual Olympiad Logo">
+		</div>
 
-	Virtual Olympiad
+		Virtual Olympiad
 
-	<div class = "links-wrapper">
-		<Button href = "" target = "_blank">
-			<Icon class="material-icons">
-				login
-			</Icon>
-			<Label>
-				Login
-			</Label>
-		</Button>
-	</div>
-</nav>
-<slot />
+		<div class = "links-wrapper">
+			<Button href = "" target = "_blank">
+				<Icon class="material-icons">
+					login
+				</Icon>
+				<Label>
+					Login
+				</Label>
+			</Button>
+		</div>
+	</nav>
+	<section>
+		<slot />
+	</section>
+</div>
+
 <!-- Footer Copyright -->
-<footer>Math et al</footer>
+<footer>2021-{new Date().getFullYear()} © Math et al </footer>
 
 <style lang="scss">
+	.svelte {
+		width: 100vw;
+		height: 100vh;
+	}
+
 	nav {
 		padding: .75rem 1rem;
 		display: flex;
@@ -83,6 +93,16 @@
 				margin: 0;
 			}
 		}
+	}
+
+	section {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		width: 100%;
+		height: calc(100% - 60px);
+		padding: 1rem;
 	}
 
 	footer {
