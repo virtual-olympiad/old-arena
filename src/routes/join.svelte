@@ -36,6 +36,9 @@
     ];
 
 	let roomcode = '';
+
+	import { io } from "src/lib/socket.js";
+	
 </script>
 
 <section class="join-room-panel">
