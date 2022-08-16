@@ -36,9 +36,9 @@
 	</div>
 	<article class="main-content">
 		{#if tabItem.label == 'Create'}
-			<CreatePanel />
+			<CreatePanel {username} />
 		{:else if tabItem.label === 'Join'}
-			<JoinPanel />
+			<JoinPanel {username} />
 		{:else}
 			<ContestPanel />
 		{/if}

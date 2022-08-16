@@ -15,6 +15,8 @@
 	} from '@smui/card';
 	import Button, { Label, Icon } from '@smui/button';
 	// import IconButton, { Icon } from '@smui/icon-button';
+	import { socket } from "../lib/socket.js";
+	import { onMount } from 'svelte';
 
 	let rooms: RoomAbstract[] = [
         {
@@ -35,10 +37,22 @@
         }
     ];
 
-	let roomcode = '';
+	onMount(() => {
+		socket.on("update-rooms", newRooms => {
+			rooms = newRooms;
+		});
+	});
 
-	import { io } from "src/lib/socket.js";
+	let roomcode:string = '';
 	
+	const joinRoom = ()=> {
+		socket.emit("join-room", {
+			username: username,
+			roomcode: roomcode
+		});
+	}
+	
+	export let username:string;
 </script>
 
 <section class="join-room-panel">
@@ -55,7 +69,7 @@
 				input$maxlength={4}
 			/>
 		</div>
-		<Button variant = "raised">
+		<Button on:click = {joinRoom} variant = "raised">
 			<Icon class="material-icons">arrow_forward</Icon>
 			<Label>Join</Label>
 		</Button>

@@ -14,6 +14,20 @@
 		roomDescription = '',
 		roomMode: RoomMode = "Normal",
 		roomPublic = true;
+	
+	import { socket } from "../lib/socket.js";
+
+	const createRoom = () => {
+		socket.emit("create-room", {
+			username: username,
+			roomName: roomName,
+			roomDescription: roomDescription,
+			roomMode: roomMode,
+			roomPublic: roomPublic
+		});
+	}
+	
+	export let username:string;
 </script>
 
 <section class="create-room-panel">
@@ -70,7 +84,7 @@
 		</FormField>
 	</div>
     <div>
-        <Button variant="raised">
+        <Button on:click = {createRoom} variant="raised">
             <Icon class="material-icons">add_circle_outline</Icon>
             <Label>Create Room</Label>
         </Button>

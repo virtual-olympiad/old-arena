@@ -52,6 +52,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"firebase": "^9.9.2",
 		"socket.io-client": "^4.5.1",
 		"svelte-material-ui": "^6.0.0-beta.16"
 	}
