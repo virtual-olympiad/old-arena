@@ -43,12 +43,12 @@
 		});
 	});
 
-	let roomcode:string = '';
+	let roomCode:string = '';
 	
 	const joinRoom = ()=> {
 		socket.emit("join-room", {
 			username: username,
-			roomcode: roomcode
+			roomCode: roomCode
 		});
 	}
 	
@@ -62,7 +62,7 @@
 		<div class = "roomcode-field">
 			<Textfield
 				variant="filled"
-				bind:value={roomcode}
+				bind:value={roomCode}
 				label="Room Code"
 				required
 				input$minLength={4}
