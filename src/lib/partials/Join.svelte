@@ -15,7 +15,7 @@
 	} from '@smui/card';
 	import Button, { Label, Icon } from '@smui/button';
 	// import IconButton, { Icon } from '@smui/icon-button';
-	import { socket } from "../lib/socket.js";
+	import { socket } from "../../lib/socket.js";
 	import { onMount } from 'svelte';
 
 	let rooms: RoomAbstract[] = [
@@ -117,7 +117,7 @@
 </section>
 
 <style lang="scss">
-	@import '../typography.scss';
+	@import '../../typography.scss';
 
 	.join-room-panel {
 		display: flex;

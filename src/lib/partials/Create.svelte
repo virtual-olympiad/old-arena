@@ -15,7 +15,7 @@
 		roomMode: RoomMode = "Normal",
 		roomPublic = true;
 	
-	import { socket } from "../lib/socket.js";
+	import { socket } from "../../lib/socket.js";
 
 	const createRoom = () => {
 		socket.emit("create-room", {
@@ -92,8 +92,8 @@
 </section>
 
 <style lang="scss">
-	@import '../variables.scss';
-	@import '../typography.scss';
+	@import '../../variables.scss';
+	@import '../../typography.scss';
 
     .tooltip-title {
         display: inline-flex;

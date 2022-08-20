@@ -1,91 +1,93 @@
 <script lang="ts">
-	import Textfield from '@smui/textfield';
-	import CharacterCounter from '@smui/textfield/character-counter';
-	import Tab, { Icon, Label } from '@smui/tab';
-	import TabBar from '@smui/tab-bar';
+	import CreatePanel from '../lib/partials/Create.svelte';
+	import JoinPanel from '../lib/partials/Join.svelte';
+	import ContestPanel from '../lib/partials/Contest.svelte';
+	import type { SvelteComponent } from 'svelte/internal';
 
-	import CreatePanel from './create.svelte';
-	import JoinPanel from './join.svelte';
-	import ContestPanel from './contest.svelte';
+	import {
+		ContentSwitcher,
+		Switch,
+		InlineNotification,
+		NotificationActionButton,
+		Tag
+	} from 'carbon-components-svelte';
+	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
+	import SearchAdvanced from 'carbon-icons-svelte/lib/SearchAdvanced.svelte';
+	import EarthFilled from 'carbon-icons-svelte/lib/EarthFilled.svelte';
 
 	// Player username
 	let username = '';
 
 	interface DrawerItem {
 		label: string;
-		icon?: string;
+		icon: SvelteComponent;
+		beta?: string;
+		disabled?: boolean;
 	}
 
-    let tabs = [{label: 'Create', icon: 'add_circle'}, {label: 'Join', icon: 'travel_explore'}, /*{label: 'Custom', icon: 'star'},*/ {label: 'Contests', icon: 'verified'}];
-	let tabItem = tabs[0];
+	let tabs = [
+		{ label: 'Create', icon: AddFilled },
+		{ label: 'Join', icon: SearchAdvanced },
+		{ label: 'Contests', icon: EarthFilled, tag: "Coming Soon", disabled: true }
+	];
+	let tabIndex = 1;
 </script>
 
-<section class="content">
-	<div class="username-field">
-		<Textfield variant="outlined" bind:value={username} label="Username" input$maxlength={18} style="width: 100%;">
-			<CharacterCounter slot="helper">0 / 18</CharacterCounter>
-		</Textfield>
-	</div>
-	<div class="tab-bar">
-		<TabBar {tabs} let:tab bind:active={tabItem}>
-			<Tab {tab}>
-			<Icon class="material-icons">{tab.icon}</Icon>
-			<Label>{tab.label}</Label>
-			</Tab>
-		</TabBar>
-	</div>
-	<article class="main-content">
-		{#if tabItem.label == 'Create'}
+<section>
+	<InlineNotification
+		lowContrast
+		kind="info"
+		title="Join our Discord:"
+		subtitle="Don't miss out on regularly hosted events, POTW, groupsolves, and more!"
+	>
+		<svelte:fragment slot="actions">
+			<NotificationActionButton>Join Now</NotificationActionButton>
+		</svelte:fragment>
+	</InlineNotification>
+
+	<ContentSwitcher bind:selectedIndex={tabIndex} size="xl">
+		{#each tabs as tab}
+			<Switch disabled={tab.disabled}>
+				<div style="display: flex; align-items: center;">
+					<svelte:component this={tab.icon} size={20} style="margin-right: 0.5rem;" />
+					{tab.label}
+					{#if tab.tag}
+					<Tag disabled={tab.disabled} style="margin-left: 0.5rem;">{tab.tag}</Tag>
+					{/if}
+				</div>
+			</Switch>
+		{/each}
+	</ContentSwitcher>
+	<article class="home-content">
+		{#if tabIndex === 0}
 			<CreatePanel {username} />
-		{:else if tabItem.label === 'Join'}
+		{:else if tabIndex === 1}
 			<JoinPanel {username} />
-		{:else}
+		{:else if tabIndex === 2}
 			<ContestPanel />
 		{/if}
 	</article>
 </section>
 
 <style lang="scss">
-    @import '../variables.scss';
+	@import '../variables.scss';
 
-	.content {
-		position: relative;
+	section {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 
-		flex-grow: 0;
-
 		height: 100%;
-		width: 75%;
-		max-width: 1200px;
-		
-		border: 1px solid $border-color;
-		z-index: 0;
-
-		background-color: #ffffff;
-
-		.username-field {
-			padding: 1rem;
-			width: clamp(263px, 50%, 500px);
-		}
-
-		.tab-bar {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-
-			width: 100%;
-		}
 	}
 
-	.main-content {
+	.home-content {
 		display: flex;
 		align-items: center;
 		flex-direction: column;
 
 		width: 100%;
-		height: 100%;
+		flex-grow: 1;
+		
 		overflow: auto;
 
 		background-color: $background-color;

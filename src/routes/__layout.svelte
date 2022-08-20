@@ -1,55 +1,46 @@
 <script>
 	import '../app.scss';
 
-	import Button, { Label, Icon} from '@smui/button';
+	import 'carbon-components-svelte/css/all.css';
+	import 'agnostic-svelte/css/common.min.css';
+
+	import { Theme, Content } from 'carbon-components-svelte';
+
+	import Navbar from "../../src/lib/partials/Navbar.svelte";
+
+	let darkMode = true; // 0 Light Mode, 1 Dark Mode
+
+	$: theme = darkMode ? "g90":"g10";
 </script>
 
 <svelte:head>
 	<!-- Svelte MD -->
 	<link rel="stylesheet" href="node_modules/svelte-material-ui/bare.css" />
 	<!-- Material Icons -->
-	<link
-	rel="stylesheet"
-	href="https://fonts.googleapis.com/icon?family=Material+Icons"
-	/>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 	<!-- Roboto -->
 	<link
-	rel="stylesheet"
-	href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700"
+		rel="stylesheet"
+		href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700"
 	/>
 	<!-- Roboto Mono -->
-	<link
-	rel="stylesheet"
-	href="https://fonts.googleapis.com/css?family=Roboto+Mono"
-	/>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono" />
 </svelte:head>
 
-<div class = "svelte">
-	<nav>
-		<div class = "logo-wrapper">
-			<img class = "logo" src = "vo_stroke.png" alt = "Virtual Olympiad Logo">
-		</div>
+<Theme bind:theme persist persistKey="__carbon-theme" />
 
-		Virtual Olympiad
-
-		<div class = "links-wrapper">
-			<Button href = "" target = "_blank">
-				<Icon class="material-icons">
-					login
-				</Icon>
-				<Label>
-					Login
-				</Label>
-			</Button>
-		</div>
-	</nav>
-	<section>
+<div class="svelte">
+	<Navbar bind:darkMode />
+	<section class="main-content">
 		<slot />
 	</section>
 </div>
 
 <!-- Footer Copyright -->
-<footer>2021-{new Date().getFullYear()} © Math et al </footer>
+<footer>
+	<span>2021-{new Date().getFullYear()} © Math et al</span>
+	<span><code>v1.0.0</code></span>
+</footer>
 
 <style lang="scss">
 	.svelte {
@@ -57,58 +48,22 @@
 		height: 100vh;
 	}
 
-	nav {
-		padding: .75rem 1rem;
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-
-		background-color: rgba(255, 255, 255, 100);
-
-		.logo-wrapper {
-			margin-right: auto;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-
-			color: #ffffff;
-
-			.logo {
-				height: 32px;
-				margin-right: .75rem;
-			}
-		}
-
-		.links-wrapper {
-			margin-left: auto;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
-
-		a {
-			margin: 0 .75rem;
-
-			> span {
-				margin: 0;
-			}
-		}
-	}
-
-	section {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
+	.main-content {
 		width: 100%;
-		height: calc(100% - 60px);
+		height: 100%;
+
+		margin-top: 48px;
 		padding: 1rem;
 	}
 
 	footer {
-		position: absolute;
+		position: sticky;
+		display: flex;
+		justify-content: space-between;
+
 		bottom: 0;
 
-		padding: .5rem;
+		width: 100%;
+		padding: 0.5rem;
 	}
 </style>
