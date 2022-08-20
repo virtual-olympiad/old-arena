@@ -43,7 +43,7 @@
     export let darkMode: boolean;
 </script>
 
-<Header company="MEA's" platformName="Virtual Olympiad">
+<Header href="/" company="MEA's" platformName="Virtual Olympiad">
 	<svelte:fragment slot="skip-to-content">
 		<SkipToContent />
 	</svelte:fragment>
@@ -69,9 +69,9 @@
 				<HeaderPanelLink href="/donate" target="_blank" class="header-icon-wrapper"><Money class="header-icon"/>Donate</HeaderPanelLink>
 
                 <HeaderPanelDivider>Help</HeaderPanelDivider>
-                <HeaderPanelLink class="header-icon-wrapper"><InformationSquare class="header-icon"/>About</HeaderPanelLink>
-                <HeaderPanelLink class="header-icon-wrapper"><Book class="header-icon"/>Guide</HeaderPanelLink>
-                <HeaderPanelLink class="header-icon-wrapper"><UnknownFilled class="header-icon"/>FAQ</HeaderPanelLink>
+                <HeaderPanelLink href="/about" class="header-icon-wrapper"><InformationSquare class="header-icon"/>About</HeaderPanelLink>
+                <HeaderPanelLink href="/guide" class="header-icon-wrapper"><Book class="header-icon"/>Guide</HeaderPanelLink>
+                <HeaderPanelLink href="/about#faq" class="header-icon-wrapper"><UnknownFilled class="header-icon"/>FAQ</HeaderPanelLink>
                 <HeaderPanelLink class="header-icon-wrapper"><Debug class="header-icon"/>Report a Bug</HeaderPanelLink>
 			</HeaderPanelLinks>
 		</HeaderAction>
