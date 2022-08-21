@@ -6,7 +6,7 @@
 		"build": "svelte-kit build",
 		"package": "svelte-kit package",
 		"preview": "svelte-kit preview",
-		"prepare": "npm install && svelte-kit sync",
+		"prepare": "svelte-kit sync",
 		"test": "playwright test",
 		"check": "svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
