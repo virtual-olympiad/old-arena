@@ -16,20 +16,7 @@ const config = {
 	],
 
 	kit: {
-		adapter: adapter(),
-
-		vite: {
-			ssr: {
-				noExternal: [/^@smui(?:-extra)?\//],
-			},
-			css: {
-				preprocessorOptions: {
-					scss: {
-						additionalData: '@use "src/variables.scss" as *;'
-					}
-				}
-			}
-		}
+		adapter: adapter()
 	}
 };
 
