@@ -1,43 +1,50 @@
 <script lang="ts">
 	import type { RoomMode } from 'src/app';
 
-	import Textfield from '@smui/textfield';
-	import CharacterCounter from '@smui/textfield/character-counter';
-    import Checkbox from '@smui/checkbox';
-	import FormField from '@smui/form-field';
-	import Select, { Option } from '@smui/select';
-	import Tooltip, { Wrapper, Title, Content, Link, RichActions } from '@smui/tooltip';
-    import Button, { Label, Icon } from '@smui/button';
+	import {
+		Form,
+		FormGroup,
+		Checkbox,
+		RadioButtonGroup,
+		RadioButton,
+		Select,
+		SelectItem,
+		Button,
+		Tile,
+		Toggle,
+		Tooltip,
+		TooltipDefinition,
+		TooltipIcon,
+		TextInput,
+		TextArea
+	} from 'carbon-components-svelte';
+	import Information from 'carbon-icons-svelte/lib/Information.svelte';
+	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 
 	const roomModes = ['Normal', 'Relay', 'Showdown'];
 	let roomName = "Mango's room",
 		roomDescription = '',
-		roomMode: RoomMode = "Normal",
+		roomMode: RoomMode = 'Normal',
 		roomPublic = true;
-	
-	import { socket } from "../../lib/socket.js";
+
+	import { socket } from '../../lib/socket.js';
 
 	const createRoom = () => {
-		socket.emit("create-room", {
+		socket.emit('create-room', {
 			username: username,
 			roomName: roomName,
 			roomDescription: roomDescription,
 			roomMode: roomMode,
 			roomPublic: roomPublic
 		});
-	}
-	
-	export let username:string;
+	};
+
+	export let username: string;
 </script>
 
-<section class="create-room-panel">
+<!--
 	<div class="room-details create-panel">
-        <Wrapper>
-            <h3 class="mdc-typography--subtitle2 tooltip-title" style="color: #555;">Room Details <span class = "material-icons md-18">info</span></h3>       
-            <Tooltip xPos = "start" yPos = "above">
-              Let others know what your room is about!
-            </Tooltip>
-        </Wrapper>
+        
 		<div>
 			<Textfield variant="outlined" bind:value={roomName} label="Room Name" required />
 		</div>
@@ -89,24 +96,73 @@
             <Label>Create Room</Label>
         </Button>
     </div>
+-->
+
+<section class="create-room-panel">
+	<div style="padding-bottom: 1rem;">
+		<Tile style="flex-grow: 1;">
+			<Form on:submit>
+				<FormGroup legendText="Room Name">
+					<TextInput placeholder="Enter room name..." />
+				</FormGroup>
+				<FormGroup>
+					<TextArea
+						placeholder="Enter room description..."
+						maxCount={100}
+						style="max-height: 150px;"
+					>
+						<span slot="labelText" style="display: flex; align-items: center;">
+							<span>Room Description</span>
+							<TooltipIcon
+								icon={Information}
+								style="margin-left: 0.5rem"
+								tooltipText="Let others know what your room is about!"
+								direction="right"
+								align="end"
+							/>
+						</span>
+					</TextArea>
+				</FormGroup>
+				<FormGroup legendText="Game Mode">
+					<RadioButtonGroup name="radio-button-group" selected="standard">
+						<RadioButton id="radio-1" value="standard" labelText="Standard" />
+						<RadioButton id="radio-2" value="relay" labelText="Relay" disabled />
+						<RadioButton id="radio-3" value="showdown" labelText="Showdown" disabled />
+					</RadioButtonGroup>
+				</FormGroup>
+				<FormGroup legendText="Room Transparency">
+					<Toggle>
+						<span slot="labelA" style="display: flex; align-items: center;">
+							Public
+							<TooltipIcon
+								icon={Information}
+								style="margin-left: 0.5rem"
+								tooltipText="Anyone can see and join your room"
+								direction="right"
+								align="end"
+							/>
+						</span>
+						<span slot="labelB" style="display: flex; align-items: center;">
+							Private
+							<TooltipIcon
+								icon={Information}
+								style="margin-left: 0.5rem"
+								tooltipText="Only people you send the room code to can join your lobby"
+								direction="right"
+								align="end"
+							/>
+						</span>
+					</Toggle>
+				</FormGroup>
+				<Button type="submit" icon={AddFilled}>Create Room</Button>
+			</Form>
+		</Tile>
+	</div>
 </section>
 
 <style lang="scss">
 	@import '../../variables.scss';
 	@import '../../typography.scss';
-
-    .tooltip-title {
-        display: inline-flex;
-        align-items: center;
-
-        &:hover {
-            cursor: pointer;
-        }
-
-        > span {
-            margin-left: .5rem;
-        }
-    }
 
 	.create-room-panel {
 		display: flex;
@@ -119,29 +175,5 @@
 		height: 100%;
 
 		text-align: left;
-
-		div {
-			margin: 1rem;
-		}
-
-		.create-panel {
-			display: flex;
-			align-items: center;
-			flex-direction: column;
-
-			width: 100%;
-
-			background-color: #fff;
-			padding: 0.5rem;
-			border: 1px solid $border-color;
-
-			div {
-				background-color: $background-color;
-			}
-		}
-
-		> .room-details {
-			text-align: left;
-		}
 	}
 </style>

@@ -57,10 +57,13 @@
 
 		margin-top: 48px;
 		padding: 1rem;
+		padding-bottom: 2rem;
+
+		overflow: auto;
 	}
 
 	footer {
-		position: sticky;
+		position: fixed;
 		display: flex;
 		justify-content: space-between;
 

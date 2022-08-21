@@ -9,7 +9,8 @@
 		Switch,
 		InlineNotification,
 		NotificationActionButton,
-		Tag
+		Tag,
+		Tile 
 	} from 'carbon-components-svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 	import SearchAdvanced from 'carbon-icons-svelte/lib/SearchAdvanced.svelte';
@@ -39,6 +40,7 @@
 		kind="info"
 		title="Join our Discord:"
 		subtitle="Don't miss out on regularly hosted events, POTW, groupsolves, and more!"
+		style="flex-shrink: 0;"
 	>
 		<svelte:fragment slot="actions">
 			<NotificationActionButton>Join Now</NotificationActionButton>
@@ -58,7 +60,7 @@
 			</Switch>
 		{/each}
 	</ContentSwitcher>
-	<article class="home-content">
+	<Tile light class="home-content">
 		{#if tabIndex === 0}
 			<CreatePanel {username} />
 		{:else if tabIndex === 1}
@@ -66,7 +68,7 @@
 		{:else if tabIndex === 2}
 			<ContestPanel />
 		{/if}
-	</article>
+	</Tile>
 </section>
 
 <style lang="scss">
@@ -81,20 +83,15 @@
 		height: 100%;
 	}
 
-	.home-content {
+	:global(.home-content) {
 		display: flex;
 		align-items: center;
 		flex-direction: column;
 
 		width: 100%;
+		height: 100%;
 		flex-grow: 1;
 		
 		overflow: auto;
-
-		background-color: $background-color;
-
-		.content-contests {
-			margin: 0 auto;
-		}
 	}
 </style>

@@ -51,7 +51,7 @@
         <HeaderGlobalAction icon={DarkModeIcon} on:click={toggleDarkMode}/>
 		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
 			<HeaderPanelLinks>
-				<HeaderPanelLink>Guest-0102</HeaderPanelLink>
+				<HeaderPanelLink>Guest-0402</HeaderPanelLink>
 				<HeaderPanelLink class="header-icon-wrapper"><Login class="header-icon"/>Login</HeaderPanelLink>
 				<HeaderPanelDivider>Account</HeaderPanelDivider>
 				<HeaderPanelLink href="https://mathetal.org" target="_blank" class="header-icon-wrapper"><UserProfile class="header-icon"/>Profile</HeaderPanelLink>

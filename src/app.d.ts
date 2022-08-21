@@ -5,6 +5,7 @@ import 'svelte';
 type RoomMode = 'Normal' | 'Relay' | 'Showdown';
 
 interface RoomAbstract {
+	id: number;
 	name: string;
 	description: string;
 	mode: RoomMode;
