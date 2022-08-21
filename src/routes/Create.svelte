@@ -24,10 +24,10 @@
 	const roomModes = ['Normal', 'Relay', 'Showdown'];
 	let roomName = "Mango's room",
 		roomDescription = '',
-		roomMode: RoomMode = 'Normal',
+		roomMode: RoomMode = 'Standard',
 		roomPublic = true;
 
-	import { socket } from '../../lib/socket.js';
+	import { socket } from '../lib/socket.js';
 
 	const createRoom = () => {
 		socket.emit('create-room', {
@@ -161,7 +161,7 @@
 </section>
 
 <style lang="scss">
-	@import '../../variables.scss';
+	@import '../variables.scss';
 
 	.create-room-panel {
 		display: flex;

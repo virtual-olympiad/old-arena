@@ -2,7 +2,7 @@
 
 import 'svelte';
 
-type RoomMode = 'Normal' | 'Relay' | 'Showdown';
+type RoomMode = 'Standard' | 'Relay' | 'Showdown';
 
 interface RoomAbstract {
 	id: number;

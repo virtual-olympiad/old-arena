@@ -1,7 +1,7 @@
 <script lang="ts">
-	import CreatePanel from '../lib/partials/Create.svelte';
-	import JoinPanel from '../lib/partials/Join.svelte';
-	import ContestPanel from '../lib/partials/Contest.svelte';
+	import CreatePanel from './Create.svelte';
+	import JoinPanel from './Join.svelte';
+	import ContestPanel from './Contest.svelte';
 	import type { SvelteComponent } from 'svelte/internal';
 
 	import {

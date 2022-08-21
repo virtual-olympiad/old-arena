@@ -5,7 +5,7 @@
 
 	import { Theme, Content } from 'carbon-components-svelte';
 
-	import Navbar from "../../src/lib/partials/Navbar.svelte";
+	import Navbar from "./Navbar.svelte";
 
 	let darkMode = true; // 0 Light Mode, 1 Dark Mode
 
