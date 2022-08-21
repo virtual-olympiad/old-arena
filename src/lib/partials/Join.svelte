@@ -141,8 +141,6 @@
 </section>
 
 <style lang="scss">
-	@import '../../typography.scss';
-
 	.join-room-panel {
 		display: flex;
 		flex-direction: column;

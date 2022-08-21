@@ -2,7 +2,6 @@
 	import '../app.scss';
 
 	import 'carbon-components-svelte/css/all.css';
-	import 'agnostic-svelte/css/common.min.css';
 
 	import { Theme, Content } from 'carbon-components-svelte';
 
@@ -14,10 +13,6 @@
 </script>
 
 <svelte:head>
-	<!-- Svelte MD -->
-	<link rel="stylesheet" href="node_modules/svelte-material-ui/bare.css" />
-	<!-- Material Icons -->
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 	<!-- Roboto -->
 	<link
 		rel="stylesheet"

@@ -162,7 +162,6 @@
 
 <style lang="scss">
 	@import '../../variables.scss';
-	@import '../../typography.scss';
 
 	.create-room-panel {
 		display: flex;

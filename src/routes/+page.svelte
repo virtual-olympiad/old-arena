@@ -82,16 +82,4 @@
 		width: 100%;
 		height: 100%;
 	}
-
-	:global(.home-content) {
-		display: flex;
-		align-items: center;
-		flex-direction: column;
-
-		width: 100%;
-		height: 100%;
-		flex-grow: 1;
-		
-		overflow: auto;
-	}
 </style>

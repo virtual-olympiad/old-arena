@@ -77,14 +77,3 @@
 		</HeaderAction>
 	</HeaderUtilities>
 </Header>
-
-<style lang="scss" global>
-	a.header-icon-wrapper {
-		display: flex; 
-		align-items: center;
-
-		.header-icon {
-			margin-right: .5rem;
-		}
-	}
-</style>
