@@ -1,6 +1,5 @@
 import adapter from '@sveltejs/adapter-auto';
 import preprocess from 'svelte-preprocess';
-import { optimizeImports, optimizeCss } from "carbon-preprocess-svelte";
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -29,8 +28,7 @@ const config = {
 						additionalData: '@use "src/variables.scss" as *;'
 					}
 				}
-			},
-			plugins: [process.env.NODE_ENV === "production" && optimizeCss()]
+			}
 		}
 	}
 };
