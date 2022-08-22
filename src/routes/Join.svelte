@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { RoomAbstract } from 'src/app';
 
-	// import IconButton, { Icon } from '@smui/icon-button';
 	import { socket } from '../lib/socket.js';
 	import { onMount } from 'svelte';
 
