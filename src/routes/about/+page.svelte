@@ -1,6 +1,4 @@
 <script lang="ts">
-	throw new Error("@migration task: Add data prop (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292707)");
-
 	import {
 		Accordion,
 		AccordionItem,
@@ -18,7 +16,10 @@
 	import LogoGithub from 'carbon-icons-svelte/lib/LogoGithub.svelte';
 	import LogoInstagram from 'carbon-icons-svelte/lib/LogoInstagram.svelte';
 
-	export const prerender = true;
+	export let data;
+	let { prerender } = data;	
+
+	prerender = true;
 </script>
 
 <article>
