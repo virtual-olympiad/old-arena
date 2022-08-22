@@ -31,7 +31,6 @@
 
 	const createRoom = () => {
 		socket.emit('create-room', {
-			username: username,
 			roomName: roomName,
 			roomDescription: roomDescription,
 			roomMode: roomMode,
@@ -39,7 +38,7 @@
 		});
 	};
 
-	export let username: string;
+	// export let darkMode: boolean;
 </script>
 
 <section class="create-room-panel">

@@ -17,7 +17,7 @@
 	} from 'carbon-components-svelte';
 
 	import Renew from 'carbon-icons-svelte/lib/Renew.svelte';
-	import Login from 'carbon-icons-svelte/lib/Login.svelte';
+	import CaretRight from "carbon-icons-svelte/lib/CaretRight.svelte";
 
 	let roomHeaders = [
 		{ key: 'name', value: 'Room Name' },
@@ -94,7 +94,7 @@
 	</article>
 
 	<section class="room-listing">
-		<div style="border: 1px solid #ffffff;">
+		<div style={"border: 1px solid #ffffff;"}>
 			<DataTable
 				sortable
 				zebra
@@ -107,19 +107,12 @@
 					newRoom.teamsEnabled = room.teamsEnabled ? 'Enabled' : 'Disabled';
 					return newRoom;
 				})}
-				style="overflow-y: hidden; overflow-x: auto;"
+				style="overflow: auto hidden;"
 			>
 				<Toolbar>
 					<ToolbarContent>
 						<ToolbarSearch persistent shouldFilterRows />
-						<ToolbarMenu>
-							<ToolbarMenuItem primaryFocus>Restart all</ToolbarMenuItem>
-							<ToolbarMenuItem href="https://cloud.ibm.com/docs/loadbalancer-service">
-								API documentation
-							</ToolbarMenuItem>
-							<ToolbarMenuItem hasDivider danger>Stop all</ToolbarMenuItem>
-						</ToolbarMenu>
-						<Button kind="ghost" iconDescription="Refresh" icon={Renew} />
+						<Button kind="ghost" tooltipPosition="top" tooltipAlignment="end" iconDescription="Refresh" icon={Renew} />
 					</ToolbarContent>
 				</Toolbar>
 				<svelte:fragment slot="cell" let:cell>
@@ -128,7 +121,7 @@
 							style="float: right;"
 							kind="ghost"
 							iconDescription="Join"
-							icon={Login}
+							icon={CaretRight}
 							href="#"
 						/>
 					{:else}{cell.value}{/if}

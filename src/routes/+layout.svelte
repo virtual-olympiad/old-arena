@@ -1,14 +1,15 @@
-<script>
+<script lang="ts">
 	import '../app.scss';
+	import type { CarbonTheme } from 'carbon-components-svelte/types/Theme/Theme.svelte';
 
 	import 'carbon-components-svelte/css/all.css';
-
 	import { Theme, Content } from 'carbon-components-svelte';
 
 	import Navbar from "./Navbar.svelte";
 
-	let darkMode = true; // 0 Light Mode, 1 Dark Mode
+	let darkMode: boolean = true; // 0 Light Mode, 1 Dark Mode
 
+	let theme: CarbonTheme;
 	$: theme = darkMode ? "g90":"g10";
 </script>
 

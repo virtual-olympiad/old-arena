@@ -62,7 +62,7 @@
 	</ContentSwitcher>
 	<Tile light class="home-content">
 		{#if tabIndex === 0}
-			<CreatePanel {username} />
+			<CreatePanel />
 		{:else if tabIndex === 1}
 			<JoinPanel {username} />
 		{:else if tabIndex === 2}
