@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { RoomAbstract } from 'src/app';
 
-	import { socket } from '../lib/socket.js';
+	import { socket } from '$lib/socket.js';
 	import { onMount } from 'svelte';
 
 	import {
@@ -28,49 +28,35 @@
 		{ key: 'join', empty: true }
 	];
 
-	let rooms: RoomAbstract[] = [
-		{
-			id: 0,
-			name: "Mango's room",
-			description: 'Join for fun AIME practice!',
-			mode: 'Relay',
-			playerCount: 6,
-			playerLimit: 8,
-			teamsEnabled: true
-		},
-		{
-			id: 1,
-			name: 'Pineappo!!',
-			description: 'With a side of jelly',
-			mode: 'Showdown',
-			playerCount: 3,
-			playerLimit: 8,
-			teamsEnabled: false
-		},
-		{
-			id: 2,
-			name: 'AMC training',
-			description: 'AMC10 Q10-Q20 range practice, host rotate',
-			mode: 'Standard',
-			playerCount: 7,
-			playerLimit: 8,
-			teamsEnabled: false
-		},
-		{
-			id: 3,
-			name: 'Mcdonalds Floor Moppers',
-			description: 'USA(J)MO easy prayge',
-			mode: 'Standard',
-			playerCount: 8,
-			playerLimit: 8,
-			teamsEnabled: false
+  	import { supabase } from '$lib/supabaseClient';
+	
+	let loadingPublicRooms = false;
+
+	let rooms: RoomAbstract[] = [];
+
+	const getPublicRooms = async () => {
+		try {
+			loadingPublicRooms = true;
+			
+			let { data: publicRooms, error, status } = await supabase.from('rooms').select(`id, name, description, mode, players`, { count: 'exact' }).eq('public', 'true');
+
+			rooms = publicRooms as RoomAbstract[];
+			console.log(rooms);
+
+			if (error && status !== 406) throw error;
+		} catch ({ message }) {
+			alert(message);
+		} finally {
+			loadingPublicRooms = false;
 		}
-	];
+	};
 
 	let pageSize = 5;
 	let page = 1;
 
 	onMount(() => {
+		getPublicRooms();
+
 		socket.on('update-rooms', (newRooms) => {
 			rooms = newRooms;
 		});
@@ -103,7 +89,7 @@
 				headers={roomHeaders}
 				rows={rooms.map((room) => {
 					let newRoom = room;
-					newRoom.players = room.playerCount + '/' + room.playerLimit;
+					newRoom.players = (room.playerCount ?? '-') + '/' + (room.playerLimit ?? '-');
 					newRoom.teamsEnabled = room.teamsEnabled ? 'Enabled' : 'Disabled';
 					return newRoom;
 				})}
@@ -112,7 +98,7 @@
 				<Toolbar>
 					<ToolbarContent>
 						<ToolbarSearch persistent shouldFilterRows />
-						<Button kind="ghost" tooltipPosition="top" tooltipAlignment="end" iconDescription="Refresh" icon={Renew} />
+						<Button on:click={getPublicRooms} kind="ghost" tooltipPosition="top" tooltipAlignment="end" iconDescription="Refresh" icon={Renew} />
 					</ToolbarContent>
 				</Toolbar>
 				<svelte:fragment slot="cell" let:cell>
