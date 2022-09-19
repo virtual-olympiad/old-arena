@@ -27,7 +27,7 @@
 		roomMode: RoomMode = 'Standard',
 		roomPublic = true;
 
-	import { socket } from '../lib/socket.js';
+	import { socket } from '$lib/socket.js';
 
 	const createRoom = () => {
 		socket.emit('create-room', {
@@ -104,7 +104,7 @@
 </section>
 
 <style lang="scss">
-	@import '../variables.scss';
+	@import 'src/variables.scss';
 
 	.create-room-panel {
 		display: flex;

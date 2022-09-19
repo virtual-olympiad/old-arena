@@ -13,7 +13,8 @@
 		ToolbarMenuItem,
 		Button,
 		Pagination,
-		TextInput
+		TextInput,
+		Loading
 	} from 'carbon-components-svelte';
 
 	import Renew from 'carbon-icons-svelte/lib/Renew.svelte';
@@ -98,11 +99,15 @@
 				<Toolbar>
 					<ToolbarContent>
 						<ToolbarSearch persistent shouldFilterRows />
-						<Button on:click={getPublicRooms} kind="ghost" tooltipPosition="top" tooltipAlignment="end" iconDescription="Refresh" icon={Renew} />
+						<Button on:click={getPublicRooms} disabled={loadingPublicRooms} kind="ghost" tooltipPosition="top" tooltipAlignment="end" iconDescription="Refresh" icon={Renew} />
 					</ToolbarContent>
 				</Toolbar>
 				<svelte:fragment slot="cell" let:cell>
-					{#if cell.key === 'join'}
+					{#if loadingPublicRooms}
+						{#if cell.key === 'name'}
+						<Loading withOverlay={false} small />
+						{/if}
+					{:else if cell.key === 'join'}
 						<Button
 							style="float: right;"
 							kind="ghost"
