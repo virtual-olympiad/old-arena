@@ -3,14 +3,14 @@
 	import type { CarbonTheme } from 'carbon-components-svelte/types/Theme/Theme.svelte';
 
 	import 'carbon-components-svelte/css/all.css';
-	import { Theme, Content } from 'carbon-components-svelte';
+	import { Theme, Content, ToastNotification } from 'carbon-components-svelte';
 
-	import Navbar from "./Navbar.svelte";
+	import Navbar from './Navbar.svelte';
 
 	let darkMode: boolean = true; // 0 Light Mode, 1 Dark Mode
 
 	let theme: CarbonTheme;
-	$: theme = darkMode ? "g90":"g10";
+	$: theme = darkMode ? 'g90' : 'g10';
 </script>
 
 <svelte:head>
@@ -42,13 +42,15 @@
 	.svelte {
 		width: 100vw;
 		height: 100vh;
+
+		position: relative;
 	}
 
 	.main-content {
 		width: 100%;
 		height: 100%;
 		display: flex;
-        flex-direction: column;
+		flex-direction: column;
 		align-items: center;
 
 		margin-top: 48px;

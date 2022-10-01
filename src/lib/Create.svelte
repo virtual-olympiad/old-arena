@@ -44,7 +44,7 @@
 <section class="create-room-panel">
 	<div style="padding-bottom: 1rem;">
 		<Tile style="flex-grow: 1;">
-			<Form on:submit>
+			<Form on:submit={createRoom}>
 				<FormGroup legendText="Room Name">
 					<TextInput placeholder="Enter room name..." />
 				</FormGroup>
@@ -90,14 +90,14 @@
 							<TooltipIcon
 								icon={Information}
 								style="margin-left: 0.5rem"
-								tooltipText="Only people you send the room code to can join your lobby"
+								tooltipText="Only people that have the room code to can join your lobby"
 								direction="right"
 								align="end"
 							/>
 						</span>
 					</Toggle>
 				</FormGroup>
-				<Button type="submit" icon={AddFilled}>Create Room</Button>
+				<Button icon={AddFilled}>Create Room</Button>
 			</Form>
 		</Tile>
 	</div>

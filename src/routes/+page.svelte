@@ -1,7 +1,7 @@
 <script lang="ts">
-	import CreatePanel from './Create.svelte';
-	import JoinPanel from './Join.svelte';
-	import ContestPanel from './Contest.svelte';
+	import CreatePanel from '$lib/Create.svelte';
+	import JoinPanel from '$lib/Join.svelte';
+	import ContestPanel from '$lib/Contest.svelte';
 	import { onMount, type SvelteComponent } from 'svelte/internal';
 
 	import {
@@ -22,10 +22,10 @@
 	import { user } from '$lib/sessionStore';
 	import { supabase } from '$lib/supabaseClient';
 
-	user.set(supabase.auth.user());
+	user.set(!!supabase.auth.user());
 
 	supabase.auth.onAuthStateChange((_, session) => {
-		user.set(session.user);
+		user.set(!!session?.user);
 	});
 
 	let modalOpen = false;

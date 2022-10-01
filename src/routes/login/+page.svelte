@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { FluidForm, TextInput, PasswordInput, Tile, Button } from 'carbon-components-svelte';
+	import {
+		FluidForm,
+		TextInput,
+		PasswordInput,
+		Tile,
+		Button,
+		Link
+	} from 'carbon-components-svelte';
 
 	import Login from 'carbon-icons-svelte/lib/Login.svelte';
 
@@ -14,32 +21,31 @@
 	];
 
 	let subtitleDetail = '';
-	
-	onMount(()=> {
-		subtitleDetail = subtitleDetails[Math.floor(subtitleDetails.length * Math.random())];
-	});
 
 	import { supabase } from '$lib/supabaseClient';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
 
-	user.set(supabase.auth.user());
+	user.set(!!supabase.auth.user());
 
 	supabase.auth.onAuthStateChange((_, session) => {
-		user.set(session.user);
+		user.set(!!session?.user);
 	});
 
-	user.subscribe((user) => {
-		if (user) {
-			window.location.href = '/';
-		}
+	onMount(() => {
+		subtitleDetail = subtitleDetails[Math.floor(subtitleDetails.length * Math.random())];
+		user.subscribe((user) => {
+			if (user) {
+				window.location.href = '/';
+			}
+		});
 	});
 
 	let loginEmail: string = '',
 		loginPassword: string = '',
 		loading = false;
 
-	let incorrectCredentials = false;
+	let invalidCredentials = '';
 
 	const handleLogin = async () => {
 		try {
@@ -47,20 +53,20 @@
 			const { error } = await supabase.auth.signIn({ email: loginEmail, password: loginPassword });
 			if (error) throw error;
 		} catch ({ error_description, message }) {
-			incorrectCredentials = true;
-			console.log(error_description || message);
+			invalidCredentials = (error_description || message) as string;
+			console.log(invalidCredentials);
 		} finally {
 			loading = false;
 		}
 
-		user.set(supabase.auth.user());
+		user.set(!!supabase.auth.user());
 	};
 </script>
 
 <section class="login-panel">
 	<Tile>
-		<h1 class="login-title">Login</h1>
-		<h6 class="login-subtitle">{subtitleDetail}</h6>
+		<h1 class="login-title" style="user-select: none;">Login</h1>
+		<h6 class="login-subtitle" style="user-select: none;">{subtitleDetail}</h6>
 
 		<FluidForm>
 			<TextInput
@@ -77,10 +83,15 @@
 				type="password"
 				labelText="Password"
 				placeholder="Enter password..."
-				invalidText="Invalid Username or Password"
-				invalid={incorrectCredentials}
+				invalidText={invalidCredentials}
+				invalid={!!invalidCredentials}
 			/>
 		</FluidForm>
+		<div style="margin-top: 1rem; user-select: none;">
+			<Link href="/signup">Create an account</Link>
+			│
+			<Link href="">Forgot password?</Link>
+		</div>
 		<span style="display: flex; justify-content: flex-end; margin-top: 1rem;">
 			<Button on:click={handleLogin} type="submit" size="field" icon={Login} disabled={loading}
 				>Log In</Button

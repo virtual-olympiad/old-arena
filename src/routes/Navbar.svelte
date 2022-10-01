@@ -52,7 +52,7 @@
 				alert(error);
 			}
 		} finally {
-			user.set(supabase.auth.user());
+			user.set(!!supabase.auth.user());
 		}
 	};
 
