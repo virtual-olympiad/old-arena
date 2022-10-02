@@ -62,7 +62,11 @@
 				window.location.href = '/login';
 			}
 
-			if (error) throw error;
+			if (error) {
+				throw error;
+			} else {
+				invalidCredentials = '';
+			}
 		} catch ({ error_description, message }) {
 			invalidCredentials = (error_description || message) as string;
 			console.log(invalidCredentials);

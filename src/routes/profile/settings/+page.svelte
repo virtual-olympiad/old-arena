@@ -27,6 +27,7 @@
 	import { supabase } from '$lib/supabaseClient';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
+	import { invalid } from '@sveltejs/kit';
 
 	user.set(!!supabase.auth.user());
 
@@ -40,9 +41,9 @@
 		about = '',
 		website = '',
 		avatar_url = '',
-		birthday = '';
-
-	let savingNotifications: any[] = [];
+		birthday = '',
+		invalidSettings = '',
+		saveSuccess = false;
 
 	onMount(() => {
 		user.subscribe((user) => {
@@ -67,11 +68,11 @@
 						birthday = [tempB[1], tempB[2], tempB[0]].join('/');
 					}
 					if (error && status !== 406) {
-						console.log(error);
+						throw error;
 					}
 				});
-		} catch ({ message }) {
-			console.log(message);
+		} catch ({ error_description, message }) {
+			console.log(error_description || message);
 		} finally {
 			loading = false;
 		}
@@ -82,10 +83,11 @@
 			if (loading) {
 				return;
 			}
+			saveSuccess = false;
 			loading = true;
 			const supabaseUser = supabase.auth.user();
 
-			const UTCBirthday = birthday.split('/').map(x => {
+			const UTCBirthday = birthday.split('/').map((x) => {
 				return parseInt(x);
 			});
 			const updates = {
@@ -104,58 +106,51 @@
 			});
 
 			if (error && status !== 406) {
-				console.log(error);
+				throw error;
+			} else {
+				invalidSettings = '';
+				saveSuccess = true;
 			}
-		} catch ({ message }) {
-			console.log(message);
+		} catch ({ error_description, message }) {
+			invalidSettings = (error_description || message) as string;
+			if (invalidSettings === `new row violates row-level security policy for table "profiles"`) {
+				invalidSettings = 'Username should be at least 3 characters';
+			}
+			if (
+				invalidSettings === `duplicate key value violates unique constraint "profiles_username_key"`
+			) {
+				invalidSettings = 'Username already taken. Please try another';
+			}
+			console.log(invalidSettings);
 		} finally {
-			savingNotifications = [
-				...savingNotifications,
-				{ type: 'success', message: 'Updated profile successfully' }
-			];
-			if (savingNotifications.length > 2) {
-				savingNotifications.splice(0, savingNotifications.length - 2);
-			}
-			// console.log(savingNotifications);
 			loading = false;
 		}
 	};
 </script>
 
 <section class="settings-panel">
-	<!--
-	{#each savingNotifications as { type, message }, i}
-		{#if type == 'error'}
-			<InlineNotification
-				lowContrast
-				kind="error"
-				title="Error Saving Profile:"
-				subtitle={message}
-				timeout={10000}
-				on:close={e=> {
-					savingNotifications.splice(i, 1);
-				}}
-			/>
-		{:else if type == 'success'}
+	{#key saveSuccess}
+		{#if saveSuccess}
 			<InlineNotification
 				lowContrast
 				kind="success"
 				title="Successfully Saved Profile Changes"
-				timeout={1000}
-				on:close={e=> {
-					savingNotifications.splice(i, 1);
-				}}
+				timeout={5000}
 			/>
 		{/if}
-	{/each}
-			-->
+	{/key}
 	<Tile>
 		<Form>
 			<FormGroup legendText="Display Name">
 				<TextInput placeholder="Enter display name..." bind:value={display_name} />
 			</FormGroup>
 			<FormGroup>
-				<TextInput placeholder="Enter user name..." bind:value={username}>
+				<TextInput
+					placeholder="Enter user name..."
+					bind:value={username}
+					invalid={!!invalidSettings}
+					invalidText={invalidSettings}
+				>
 					<span slot="labelText" style="display: flex; align-items: center;">
 						<span>Username</span>
 						<TooltipIcon
@@ -187,6 +182,10 @@
 					</span>
 				</TextArea>
 			</FormGroup>
+			<FormGroup>
+				<TextInput labelText="Website" placeholder="Enter website link..." bind:value={website} />
+			</FormGroup>
+			<!--
 			<FormGroup legendText="Who can view your profile?">
 				<RadioButtonGroup name="radio-button-group" selected="standard">
 					<RadioButton id="radio-1" value="everyone" labelText="Everyone" />
@@ -194,6 +193,7 @@
 					<RadioButton id="radio-3" value="none" labelText="No one" />
 				</RadioButtonGroup>
 			</FormGroup>
+			-->
 			<FormGroup>
 				<DatePicker
 					light

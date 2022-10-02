@@ -108,3 +108,13 @@ div.home-content {
 	
 	overflow: auto;
 }
+
+.profile-tabs {
+	display: flex; 
+}
+
+@media screen and (min-width: 672px){
+	.profile-tabs {
+		justify-content: center; text-align: center;
+	}
+}
