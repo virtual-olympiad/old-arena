@@ -52,7 +52,19 @@
 		about = '',
 		website = '',
 		avatar_url = '',
-		badges: ProfileBadge[] = [];
+		badges: ProfileBadge[] = [],
+		pfpSrc = '';
+
+	const downloadImage = (node: any) => {
+		supabase.storage
+			.from('avatars')
+			.download(`${supabase.auth.user()?.id}.png`)
+			.then(({ data, error }) => {
+				if (error) throw error;
+				pfpSrc = URL.createObjectURL(data as Blob);
+			})
+			.catch((error) => console.error('Error downloading image: ', error.message));
+	};
 
 	onMount(() => {
 		user.subscribe((user) => {
@@ -60,6 +72,8 @@
 				window.location.href = '/';
 			}
 		});
+
+		downloadImage();
 
 		try {
 			loading = true;
@@ -87,13 +101,21 @@
 <section class="profile-panel">
 	<Tile style="height: 100%;">
 		<div class="profile-user">
+			{#if pfpSrc}
+				<div class="profile-avatar-wrapper">
+					<img src={pfpSrc} alt="Avatar" class="profile-avatar" />
+				</div>
+			{/if}
 			<h1 class="profile-display-name">{display_name}</h1>
-			<span class="profile-username">@{username}</span>
+			<span class="profile-username">{username ? '@' + username:''}</span>
 			<div class="profile-badges">
 				{#each badges as badge, i}
 					<Tooltip hideIcon>
 						<div slot="triggerText">
-							<Tag style={`background-color: ${badge.color}; color: ${badge.textcolor}`} icon={Information}>
+							<Tag
+								style={`background-color: ${badge.color}; color: ${badge.textcolor}`}
+								icon={Information}
+							>
 								{badge.name}
 							</Tag>
 						</div>
@@ -146,6 +168,16 @@
 
 		margin: 2rem;
 
+		.profile-avatar-wrapper {
+			border-radius: 50%;
+			border: 1px solid #aaaaaa;
+		}
+
+		.profile-avatar {
+			object-fit: contain;
+			max-height: 6em;
+		}
+
 		.profile-username {
 			user-select: none;
 			margin: 0.25rem 0 1rem 0;
@@ -171,7 +203,7 @@
 		}
 	}
 
-	@media screen and (max-width: 672px){
+	@media screen and (max-width: 672px) {
 		.profile-badges {
 			flex-direction: column;
 		}

@@ -29,6 +29,8 @@
 	import { onMount } from 'svelte';
 	import { invalid } from '@sveltejs/kit';
 
+	import Avatar from './Avatar.svelte';
+
 	user.set(!!supabase.auth.user());
 
 	supabase.auth.onAuthStateChange((_, session) => {
@@ -139,8 +141,11 @@
 			/>
 		{/if}
 	{/key}
-	<Tile>
+	<Tile light style="overflow: auto; height: 100%;">
 		<Form>
+			<FormGroup>
+				<Avatar />
+			</FormGroup>
 			<FormGroup legendText="Display Name">
 				<TextInput placeholder="Enter display name..." bind:value={display_name} />
 			</FormGroup>
