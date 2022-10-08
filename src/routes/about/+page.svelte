@@ -17,7 +17,7 @@
 	import LogoInstagram from 'carbon-icons-svelte/lib/LogoInstagram.svelte';
 
 	export let data;
-	let { prerender } = data;	
+	let { prerender } = data;
 
 	prerender = true;
 </script>
@@ -25,27 +25,27 @@
 <article>
 	<h1>About</h1>
 	<br />
-	<ExpandableTile tileExpandedLabel="View less" tileCollapsedLabel="View more">
-		<div slot="above" style="height: 10rem">
-			<p>
-				Virtual Olympiad (VO or VOLY) is an online multiplayer practice platform for contest math.
-				Team up and compete with your friends in highly customizable lobbies with various gamemodes
-				and problemset options. VOLY not only helps you prepare for contest math, but also provides
-				a fun and competitive spin while doing so.
-			</p>
-			<br />
-			<p>
-				The first Virtual Olympiad platform was created by polarity in late 2021, which recieved
-				generally positive feedback but was very buggy and unpolished. Later in Summer 2022,
-				polarity revisited the project and did a rewrite, resulting in this revamped new VOLY
-				platform today.
-			</p>
-		</div>
-		<div slot="below" style="height: 6rem">
-			<p>The original Virtual Olympiad platform helped a small friendgroup interested in the sciences evolve into a full STEM organization by early 2022! 
-            That's the origin of Math et al, a non-profit STEM organization founded by a few high school students. We now host many events, contests, and projects in Math, CS, Physics, and more. Our team is very qualified with many national and international olympiad qualifiers in various sciences.
-		</div>
-	</ExpandableTile>
+	<Tile>
+		<p>
+			Virtual Olympiad (VO or VOLY) is an online multiplayer practice platform for contest math.
+			Team up and compete with your friends in highly customizable lobbies with various gamemodes
+			and problemset options. VOLY not only helps you prepare for contest math, but also provides a
+			fun and competitive spin while doing so.
+		</p>
+		<br />
+		<p>
+			The first Virtual Olympiad platform was created by polarity in late 2021, which recieved
+			generally positive feedback but was very buggy and unpolished. Later in Summer 2022, polarity
+			revisited the project and did a rewrite, resulting in this revamped new VOLY platform today.
+		</p>
+		<p>
+			The original Virtual Olympiad platform helped a small friendgroup interested in the sciences
+			evolve into a full STEM organization by early 2022! That's the origin of Math et al, a
+			non-profit STEM organization founded by a few high school students. We now host many events,
+			contests, and projects in Math, CS, Physics, and more. Our team is very qualified with many
+			national and international olympiad qualifiers in various sciences.
+		</p>
+	</Tile>
 
 	<br />
 	<h1 id="faq" style="display: flex; align-items: center; justify-content: center;">
@@ -66,8 +66,18 @@
 			</p>
 			<br />
 			<Button href="https://mathetal.org/" kind="ghost" iconDescription="Website" icon={Home} />
-			<Button href="https://mathetal.org/discord" kind="ghost" iconDescription="Discord" icon={LogoDiscord} />
-			<Button href="https://mathetal.org/github" kind="ghost" iconDescription="Github" icon={LogoGithub} />
+			<Button
+				href="https://mathetal.org/discord"
+				kind="ghost"
+				iconDescription="Discord"
+				icon={LogoDiscord}
+			/>
+			<Button
+				href="https://mathetal.org/github"
+				kind="ghost"
+				iconDescription="Github"
+				icon={LogoGithub}
+			/>
 			<Button kind="ghost" iconDescription="Instagram" icon={LogoInstagram} />
 		</AccordionItem>
 		<AccordionItem title="What is Virtual Olympiad Premium?">
@@ -125,8 +135,7 @@
 		<AccordionItem title="How did you make this site?">
 			<p>
 				This platform was built with SvelteKit (frontend), Node.js, and Firebase (backend). The code
-				is open source and available on our <Link href="https://mathetal.org/github">Github</Link
-				>.
+				is open source and available on our <Link href="https://mathetal.org/github">Github</Link>.
 			</p>
 		</AccordionItem>
 	</Accordion>
