@@ -62,6 +62,7 @@
 								tooltipText="Let others know what your room is about!"
 								direction="right"
 								align="end"
+								on:click={(e) => e.preventDefault()}
 							/>
 						</span>
 					</TextArea>
@@ -83,6 +84,7 @@
 								tooltipText="Anyone can see and join your room"
 								direction="right"
 								align="end"
+								on:click={(e) => e.preventDefault()}
 							/>
 						</span>
 						<span slot="labelB" style="display: flex; align-items: center;">
@@ -93,6 +95,7 @@
 								tooltipText="Only people that have the room code to can join your lobby"
 								direction="right"
 								align="end"
+								on:click={(e) => e.preventDefault()}
 							/>
 						</span>
 					</Toggle>

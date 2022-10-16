@@ -73,7 +73,7 @@
 			}
 		});
 
-		downloadImage();
+		downloadImage(null);
 
 		try {
 			loading = true;
