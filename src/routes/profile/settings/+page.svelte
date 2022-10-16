@@ -74,7 +74,7 @@
 					}
 				});
 		} catch ({ error_description, message }) {
-			console.log(error_description || message);
+			console.error(error_description || message);
 		} finally {
 			loading = false;
 		}
@@ -123,7 +123,7 @@
 			) {
 				invalidSettings = 'Username already taken. Please try another';
 			}
-			console.log(invalidSettings);
+			console.error(invalidSettings);
 		} finally {
 			loading = false;
 		}
@@ -164,6 +164,7 @@
 							tooltipText="Your alphanumeric unique identifier"
 							direction="right"
 							align="end"
+							on:click={(e) => e.preventDefault()}
 						/>
 					</span>
 				</TextInput>
@@ -183,6 +184,7 @@
 							tooltipText="Your bio will show on your profile!"
 							direction="right"
 							align="end"
+							on:click={(e) => e.preventDefault()}
 						/>
 					</span>
 				</TextArea>

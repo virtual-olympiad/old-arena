@@ -7,7 +7,7 @@
 	let uploading = false;
 	let updated = false;
 	let src: string = '';
-	let invalid = '';
+	let toast = '';
 	let pfp: any[];
 
 	const dispatch = createEventDispatcher();
@@ -25,7 +25,7 @@
 
 	const uploadAvatar = async () => {
 		try {
-			invalid = '';
+			toast = '';
 			uploading = true;
 			if (!pfp || pfp.length === 0) {
 				throw new Error('You must select an image to upload.');
@@ -41,14 +41,15 @@
 
 			let { error: uploadError } = await supabase.storage
 				.from('avatars')
-				.upload(filePath, file, { cacheControl: '10', upsert: true });
+				.upload(filePath, file, { cacheControl: '60', upsert: true });
 
 			if (uploadError) throw uploadError;
 
 			updated = !updated;
+			toast = 'success';
 			dispatch('upload');
 		} catch ({ message }) {
-			invalid = message as string;
+			toast = message as string;
 			console.error(message);
 			pfp.pop();
 		} finally {
@@ -62,13 +63,13 @@
 	});
 </script>
 
-{#key invalid}
-	{#if invalid}
+{#key toast}
+	{#if toast}
 		<InlineNotification
 			lowContrast
-			kind="error"
-			title="Error Uploading: "
-			subtitle={invalid}
+			kind={toast == "success" ? "success":"error"}
+			title={toast == "success" ? "Successfully Updated Avatar" : "Error Uploading: "}
+			subtitle={toast == "success" ? "Allow up to a minute for changes to take place." : toast}
 			timeout={5000}
 		/>
 	{/if}

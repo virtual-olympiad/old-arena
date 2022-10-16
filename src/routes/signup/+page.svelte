@@ -69,7 +69,7 @@
 			}
 		} catch ({ error_description, message }) {
 			invalidCredentials = (error_description || message) as string;
-			console.log(invalidCredentials);
+			console.error(invalidCredentials);
 		} finally {
 			loading = false;
 			user.set(!!supabase.auth.user());
