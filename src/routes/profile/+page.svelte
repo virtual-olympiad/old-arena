@@ -32,12 +32,6 @@
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
 
-	user.set(!!supabase.auth.user());
-
-	supabase.auth.onAuthStateChange((_, session) => {
-		user.set(!!session?.user);
-	});
-
 	interface ProfileBadge {
 		name: string;
 		icon: string;
@@ -58,7 +52,7 @@
 	const downloadImage = (node: any) => {
 		supabase.storage
 			.from('avatars')
-			.download(`${supabase.auth.user()?.id}.png`)
+			.download(`${$user?.id}.png`)
 			.then(({ data, error }) => {
 				if (error) throw error;
 				pfpSrc = URL.createObjectURL(data as Blob);
@@ -66,7 +60,7 @@
 			.catch((error) => console.error('Error downloading image: ', error.message));
 	};
 
-	onMount(() => {
+	onMount(async () => {
 		user.subscribe((user) => {
 			if (!user) {
 				window.location.href = '/';
@@ -77,12 +71,11 @@
 
 		try {
 			loading = true;
-			const supabaseUser = supabase.auth.user();
 
 			supabase
 				.from('profiles')
 				.select(`username, display_name, about, website, badges, avatar_url`)
-				.eq('id', supabaseUser?.id)
+				.eq('id', $user?.id)
 				.single()
 				.then(({ data, error, status }) => {
 					if (data) {
@@ -91,7 +84,7 @@
 					if (error && status !== 406) throw error;
 				});
 		} catch ({ message }) {
-			alert(message);
+			console.error(message);
 		} finally {
 			loading = false;
 		}

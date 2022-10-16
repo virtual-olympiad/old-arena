@@ -48,13 +48,13 @@
 			} = await supabase
 				.from('rooms')
 				.select(`id, name, description, mode, players`, { count: 'exact' })
-				.eq('public', 'true');
+				.eq('isPublic', 'true');
 
 			rooms = publicRooms as RoomAbstract[];
 
 			if (error && status !== 406) throw error;
 		} catch ({ message }) {
-			alert(message);
+			console.error(message);
 		} finally {
 			loadingPublicRooms = false;
 		}

@@ -18,12 +18,6 @@
 	import { onMount } from 'svelte';
 	import { invalid } from '@sveltejs/kit';
 
-	user.set(!!supabase.auth.user());
-
-	supabase.auth.onAuthStateChange((_, session) => {
-		user.set(!!session?.user);
-	});
-
 	onMount(() => {
 		user.subscribe((user) => {
 			if (user) {
@@ -41,38 +35,32 @@
 	const handleSignup = async () => {
 		try {
 			loading = true;
-			if (signupUsername.length < 3){
+			if (signupUsername.length < 3) {
 				invalidCredentials = 'Username should be at least 3 characters';
 				return;
 			}
 
-			const { user, error } = await supabase.auth.signUp(
-				{
-					email: signupEmail,
-					password: signupPassword
-				},
-				{
+			const { data, error } = await supabase.auth.signUp({
+				email: signupEmail,
+				password: signupPassword,
+				options: {
 					data: {
-						username: signupUsername,
+						username: signupUsername
 					}
 				}
-			);
-			
-			if (user){
-				window.location.href = '/login';
-			}
+			});
 
 			if (error) {
 				throw error;
-			} else {
-				invalidCredentials = '';
 			}
+			
+			invalidCredentials = '';
+			window.location.href = '/login';
 		} catch ({ error_description, message }) {
 			invalidCredentials = (error_description || message) as string;
 			console.error(invalidCredentials);
 		} finally {
 			loading = false;
-			user.set(!!supabase.auth.user());
 		}
 	};
 </script>

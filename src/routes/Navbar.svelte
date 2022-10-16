@@ -50,37 +50,38 @@
 			const { error } = await supabase.auth.signOut();
 
 			if (error) {
-				alert(error);
+				console.error(error);
 			}
-		} finally {
-			user.set(!!supabase.auth.user());
+		} catch ({ message }){
+
 		}
-	};
+	}
 
 	let display_name = '';
 
 	onMount(() => {
-		if (!supabase.auth.user()){
-			return;
-		}
+		user.subscribe(async user => {
+			try {
+				console.log(user);
+				if (!user){
+					return;
+				}
 
-		try {
-			const supabaseUser = supabase.auth.user();
-
-			supabase
-				.from('profiles')
-				.select(`display_name`)
-				.eq('id', supabaseUser?.id)
-				.single()
-				.then(({ data, error, status }) => {
-					if (data) {
-						({ display_name } = data);
-					}
-					if (error && status !== 406) throw error;
-				});
-		} catch ({ message }) {
-			console.error(message);
-		}
+				supabase
+					.from('profiles')
+					.select(`display_name`)
+					.eq('id', user?.id)
+					.single()
+					.then(({ data, error, status }) => {
+						if (data) {
+							({ display_name } = data);
+						}
+						if (error && status !== 406) throw error;
+					});
+			} catch ({ message }) {
+				console.error(message);
+			}
+		});
 	});
 
 	export let darkMode: boolean;
@@ -95,7 +96,7 @@
 		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
 			<HeaderPanelLinks>
 				<HeaderPanelLink>{display_name || ('Guest' + (socket.id || ''))}</HeaderPanelLink>
-				{#if supabase.auth.user()}
+				{#if $user}
 					<HeaderPanelLink on:click={handleLogout} class="header-icon-wrapper"
 						><Logout class="header-icon" />Logout</HeaderPanelLink
 					>

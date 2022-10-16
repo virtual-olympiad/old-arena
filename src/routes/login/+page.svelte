@@ -27,13 +27,7 @@
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
 
-	user.set(!!supabase.auth.user());
-
-	supabase.auth.onAuthStateChange((_, session) => {
-		user.set(!!session?.user);
-	});
-
-	onMount(() => {
+	onMount(async () => {
 		subtitleDetail = subtitleDetails[Math.floor(subtitleDetails.length * Math.random())];
 		user.subscribe((user) => {
 			if (user) {
@@ -41,6 +35,8 @@
 			}
 		});
 	});
+
+	import { browser } from '$app/environment';
 
 	let loginEmail: string = '',
 		loginPassword: string = '',
@@ -54,7 +50,7 @@
 			if (!loginPassword){
 				throw new Error('You must enter your password.');
 			}
-			const { error } = await supabase.auth.signIn({ email: loginEmail, password: loginPassword });
+			const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
 			if (error) throw error;
 		} catch ({ error_description, message }) {
 			invalidCredentials = (error_description || message) as string;
@@ -62,8 +58,6 @@
 		} finally {
 			loading = false;
 		}
-
-		user.set(!!supabase.auth.user());
 	};
 	
 	let resetSent = false;
@@ -75,7 +69,7 @@
 		try {
 			resetSent = false;
 			loading = true;
-			const { error } = await supabase.auth.api.resetPasswordForEmail(loginEmail, { redirectTo: 'https://voly.mathetal.org/resetpassword' });
+			const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, { redirectTo: 'https://voly.mathetal.org/resetpassword' });
 			if (error) throw error;
 			resetSent = true;
 		} catch ({ error_description, message }) {

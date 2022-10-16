@@ -31,12 +31,6 @@
 
 	import Avatar from './Avatar.svelte';
 
-	user.set(!!supabase.auth.user());
-
-	supabase.auth.onAuthStateChange((_, session) => {
-		user.set(!!session?.user);
-	});
-
 	let loading = false,
 		username = '',
 		display_name = '',
@@ -47,7 +41,7 @@
 		invalidSettings = '',
 		saveSuccess = false;
 
-	onMount(() => {
+	onMount(async () => {
 		user.subscribe((user) => {
 			if (!user) {
 				window.location.href = '/';
@@ -56,12 +50,10 @@
 
 		try {
 			loading = true;
-			const supabaseUser = supabase.auth.user();
-
 			supabase
 				.from('profiles')
 				.select(`username, display_name, about, website, avatar_url, birthday`)
-				.eq('id', supabaseUser?.id)
+				.eq('id', $user?.id)
 				.single()
 				.then(({ data, error, status }) => {
 					if (data) {
@@ -87,13 +79,12 @@
 			}
 			saveSuccess = false;
 			loading = true;
-			const supabaseUser = supabase.auth.user();
 
 			const UTCBirthday = birthday.split('/').map((x) => {
 				return parseInt(x);
 			});
 			const updates = {
-				id: supabaseUser?.id,
+				id: $user?.id,
 				username,
 				display_name,
 				about,
@@ -103,9 +94,7 @@
 				updated_at: new Date()
 			};
 
-			let { error, status } = await supabase.from('profiles').upsert(updates, {
-				returning: 'minimal'
-			});
+			let { error, status } = await supabase.from('profiles').upsert(updates);
 
 			if (error && status !== 406) {
 				throw error;

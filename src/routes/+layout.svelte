@@ -6,11 +6,17 @@
 	import { Theme, Content, ToastNotification } from 'carbon-components-svelte';
 
 	import Navbar from './Navbar.svelte';
+	import { supabase } from '$lib/supabaseClient';
+	import { user } from '$lib/sessionStore';
 
 	let darkMode: boolean = true; // 0 Light Mode, 1 Dark Mode
 
 	let theme: CarbonTheme;
 	$: theme = darkMode ? 'g90' : 'g10';
+
+	supabase.auth.onAuthStateChange((event, session) => {
+		user.set(session?.user);
+	});
 </script>
 
 <svelte:head>

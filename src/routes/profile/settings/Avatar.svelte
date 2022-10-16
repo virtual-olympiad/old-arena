@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { supabase } from '$lib/supabaseClient';
-
+	import { user } from "$lib/sessionStore";
 	import { FileUploader, ImageLoader, InlineNotification } from 'carbon-components-svelte';
 
 	let uploading = false;
@@ -15,7 +15,7 @@
 	const downloadImage = (node: any) => {
 		supabase.storage
 			.from('avatars')
-			.download(`${supabase.auth.user()?.id}.png`)
+			.download(`${$user?.id}.png`)
 			.then(({ data, error }) => {
 				if (error) throw error;
 				src = URL.createObjectURL(data as Blob);
@@ -37,7 +37,7 @@
 			}
 
 			// const fileExt = file.name.split('.').pop();
-			const filePath = `${supabase.auth.user()?.id}.png`;
+			const filePath = `${$user?.id}.png`;
 
 			let { error: uploadError } = await supabase.storage
 				.from('avatars')
