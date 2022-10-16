@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { RoomAbstract } from 'src/app';
 
-	import { socket } from '$lib/socket.js';
+	import { socket } from '$lib/socket';
 	import { onMount } from 'svelte';
 
 	import {
@@ -18,9 +18,11 @@
 	} from 'carbon-components-svelte';
 
 	import Renew from 'carbon-icons-svelte/lib/Renew.svelte';
-	import CaretRight from "carbon-icons-svelte/lib/CaretRight.svelte";
+	import CaretRight from 'carbon-icons-svelte/lib/CaretRight.svelte';
 
-	let roomHeaders = [
+	import type { DataTableHeader } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
+
+	let roomHeaders: DataTableHeader[] = [
 		{ key: 'name', value: 'Room Name' },
 		{ key: 'description', value: 'Description', sort: false },
 		{ key: 'mode', value: 'Mode' },
@@ -29,8 +31,8 @@
 		{ key: 'join', empty: true }
 	];
 
-  	import { supabase } from '$lib/supabaseClient';
-	
+	import { supabase } from '$lib/supabaseClient';
+
 	let loadingPublicRooms = false;
 
 	let rooms: RoomAbstract[] = [];
@@ -38,11 +40,17 @@
 	const getPublicRooms = async () => {
 		try {
 			loadingPublicRooms = true;
-			
-			let { data: publicRooms, error, status } = await supabase.from('rooms').select(`id, name, description, mode, players`, { count: 'exact' }).eq('public', 'true');
+
+			let {
+				data: publicRooms,
+				error,
+				status
+			} = await supabase
+				.from('rooms')
+				.select(`id, name, description, mode, players`, { count: 'exact' })
+				.eq('public', 'true');
 
 			rooms = publicRooms as RoomAbstract[];
-			console.log(rooms);
 
 			if (error && status !== 406) throw error;
 		} catch ({ message }) {
@@ -81,7 +89,7 @@
 	</article>
 
 	<section class="room-listing">
-		<div style={"border: 1px solid #ffffff;"}>
+		<div style={'border: 1px solid #ffffff;'}>
 			<DataTable
 				sortable
 				zebra
@@ -89,23 +97,32 @@
 				description={rooms.length + ' public rooms open'}
 				headers={roomHeaders}
 				rows={rooms.map((room) => {
-					let newRoom = room;
-					newRoom.players = (room.playerCount ?? '-') + '/' + (room.playerLimit ?? '-');
-					newRoom.teamsEnabled = room.teamsEnabled ? 'Enabled' : 'Disabled';
-					return newRoom;
+					return {
+						...room,
+						players: (room.playerCount ?? '-') + '/' + (room.playerLimit ?? '-'),
+						teamsEnabled: room.teamsEnabled ? 'Enabled' : 'Disabled'
+					};
 				})}
 				style="overflow: auto hidden;"
 			>
 				<Toolbar>
 					<ToolbarContent>
 						<ToolbarSearch persistent shouldFilterRows />
-						<Button on:click={getPublicRooms} disabled={loadingPublicRooms} kind="ghost" tooltipPosition="top" tooltipAlignment="end" iconDescription="Refresh" icon={Renew} />
+						<Button
+							on:click={getPublicRooms}
+							disabled={loadingPublicRooms}
+							kind="ghost"
+							tooltipPosition="top"
+							tooltipAlignment="end"
+							iconDescription="Refresh"
+							icon={Renew}
+						/>
 					</ToolbarContent>
 				</Toolbar>
 				<svelte:fragment slot="cell" let:cell>
 					{#if loadingPublicRooms}
 						{#if cell.key === 'name'}
-						<Loading withOverlay={false} small />
+							<Loading withOverlay={false} small />
 						{/if}
 					{:else if cell.key === 'join'}
 						<Button

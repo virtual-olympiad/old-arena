@@ -32,12 +32,6 @@
 	</section>
 </div>
 
-<!-- Footer Copyright -->
-<footer>
-	<span>2021-{new Date().getFullYear()} © Math et al</span>
-	<span><code>v1.0.0</code></span>
-</footer>
-
 <style lang="scss">
 	.svelte {
 		width: 100vw;
@@ -58,16 +52,5 @@
 		padding-bottom: 2rem;
 
 		overflow: auto;
-	}
-
-	footer {
-		position: fixed;
-		display: flex;
-		justify-content: space-between;
-
-		bottom: 0;
-
-		width: 100%;
-		padding: 0.5rem;
 	}
 </style>
