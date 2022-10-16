@@ -35,6 +35,7 @@
 	import { user } from '$lib/sessionStore';
 	import { supabase } from '$lib/supabaseClient';
 	import { socket } from '$lib/socket';
+	import { onMount } from 'svelte';
 
 	let isOpen1 = false;
 	let isOpen2 = false;
@@ -56,6 +57,32 @@
 		}
 	};
 
+	let display_name = '';
+
+	onMount(() => {
+		if (!supabase.auth.user()){
+			return;
+		}
+
+		try {
+			const supabaseUser = supabase.auth.user();
+
+			supabase
+				.from('profiles')
+				.select(`display_name`)
+				.eq('id', supabaseUser?.id)
+				.single()
+				.then(({ data, error, status }) => {
+					if (data) {
+						({ display_name } = data);
+					}
+					if (error && status !== 406) throw error;
+				});
+		} catch ({ message }) {
+			console.error(message);
+		}
+	});
+
 	export let darkMode: boolean;
 </script>
 
@@ -67,10 +94,7 @@
 		<HeaderGlobalAction icon={DarkModeIcon} on:click={toggleDarkMode} />
 		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
 			<HeaderPanelLinks>
-				<HeaderPanelLink
-					>{supabase.auth.user()?.user_metadata.username ??
-						'Guest' + (socket.id ?? '')}</HeaderPanelLink
-				>
+				<HeaderPanelLink>{display_name || ('Guest' + (socket.id || ''))}</HeaderPanelLink>
 				{#if supabase.auth.user()}
 					<HeaderPanelLink on:click={handleLogout} class="header-icon-wrapper"
 						><Logout class="header-icon" />Logout</HeaderPanelLink
@@ -132,3 +156,6 @@
 		</HeaderAction>
 	</HeaderUtilities>
 </Header>
+
+<style lang="scss">
+</style>
