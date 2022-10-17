@@ -45,7 +45,8 @@
 				password: signupPassword,
 				options: {
 					data: {
-						username: signupUsername
+						username: signupUsername,
+						birthday: new Date()
 					}
 				}
 			});

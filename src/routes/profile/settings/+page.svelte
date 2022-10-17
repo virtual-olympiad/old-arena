@@ -1,234 +1,31 @@
 <script lang="ts">
-	import {
-		FluidForm,
-		TextInput,
-		PasswordInput,
-		Tile,
-		Button,
-		DatePicker,
-		DatePickerInput,
-		TooltipDefinition,
-		Link,
-		Form,
-		FormGroup,
-		TextArea,
-		TooltipIcon,
-		RadioButtonGroup,
-		RadioButton,
-		Toggle,
-		ToastNotification,
-		InlineNotification
-	} from 'carbon-components-svelte';
+	import ProfileSettings from "./ProfileSettings.svelte";
+	import AccountSettings from "./AccountSettings.svelte";
+	import SocialSettings from "./SocialSettings.svelte";
 
-	import Information from 'carbon-icons-svelte/lib/Information.svelte';
-	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
-	import UpdateNow from 'carbon-icons-svelte/lib/UpdateNow.svelte';
-
-	import { supabase } from '$lib/supabaseClient';
-	import { user } from '$lib/sessionStore';
-	import { onMount } from 'svelte';
-	import { invalid } from '@sveltejs/kit';
-
-	import Avatar from './Avatar.svelte';
-
-	let loading = false,
-		username = '',
-		display_name = '',
-		about = '',
-		website = '',
-		avatar_url = '',
-		birthday = '',
-		invalidSettings = '',
-		saveSuccess = false;
-
-	onMount(async () => {
-		user.subscribe((user) => {
-			if (!user) {
-				window.location.href = '/';
-			}
-		});
-
-		try {
-			loading = true;
-			supabase
-				.from('profiles')
-				.select(`username, display_name, about, website, avatar_url, birthday`)
-				.eq('id', $user?.id)
-				.single()
-				.then(({ data, error, status }) => {
-					if (data) {
-						({ username, display_name, about, website, avatar_url, birthday } = data);
-						let tempB = birthday?.split('-');
-						birthday = [tempB[1], tempB[2], tempB[0]].join('/');
-					}
-					if (error && status !== 406) {
-						throw error;
-					}
-				});
-		} catch ({ error_description, message }) {
-			console.error(error_description || message);
-		} finally {
-			loading = false;
-		}
-	});
-
-	const updateProfile = async () => {
-		try {
-			if (loading) {
-				return;
-			}
-			saveSuccess = false;
-			loading = true;
-
-			const UTCBirthday = birthday.split('/').map((x) => {
-				return parseInt(x);
-			});
-			const updates = {
-				id: $user?.id,
-				username,
-				display_name,
-				about,
-				birthday: new Date(Date.UTC(UTCBirthday[2], UTCBirthday[0] - 1, UTCBirthday[1])) ?? null,
-				website,
-				avatar_url,
-				updated_at: new Date()
-			};
-
-			let { error, status } = await supabase.from('profiles').upsert(updates);
-
-			if (error && status !== 406) {
-				throw error;
-			} else {
-				invalidSettings = '';
-				saveSuccess = true;
-			}
-		} catch ({ error_description, message }) {
-			invalidSettings = (error_description || message) as string;
-			if (invalidSettings === `new row violates row-level security policy for table "profiles"`) {
-				invalidSettings = 'Username should be at least 3 characters';
-			}
-			if (
-				invalidSettings === `duplicate key value violates unique constraint "profiles_username_key"`
-			) {
-				invalidSettings = 'Username already taken. Please try another';
-			}
-			console.error(invalidSettings);
-		} finally {
-			loading = false;
-		}
-	};
+	import {Tabs, Tab, TabContent} from "carbon-components-svelte";
 </script>
 
-<section class="settings-panel">
-	{#key saveSuccess}
-		{#if saveSuccess}
-			<InlineNotification
-				lowContrast
-				kind="success"
-				title="Successfully Saved Profile Changes"
-				timeout={5000}
-			/>
-		{/if}
-	{/key}
-	<Tile light style="overflow: auto; height: 100%;">
-		<Form>
-			<FormGroup>
-				<Avatar />
-			</FormGroup>
-			<FormGroup legendText="Display Name">
-				<TextInput placeholder="Enter display name..." bind:value={display_name} />
-			</FormGroup>
-			<FormGroup>
-				<TextInput
-					placeholder="Enter user name..."
-					bind:value={username}
-					invalid={!!invalidSettings}
-					invalidText={invalidSettings}
-				>
-					<span slot="labelText" style="display: flex; align-items: center;">
-						<span>Username</span>
-						<TooltipIcon
-							icon={Information}
-							style="margin-left: 0.5rem"
-							tooltipText="Your alphanumeric unique identifier"
-							direction="right"
-							align="end"
-							on:click={(e) => e.preventDefault()}
-						/>
-					</span>
-				</TextInput>
-			</FormGroup>
-			<FormGroup>
-				<TextArea
-					placeholder="Enter a bio..."
-					bind:value={about}
-					maxCount={100}
-					style="max-height: 150px;"
-				>
-					<span slot="labelText" style="display: flex; align-items: center;">
-						<span>About Me</span>
-						<TooltipIcon
-							icon={Information}
-							style="margin-left: 0.5rem"
-							tooltipText="Your bio will show on your profile!"
-							direction="right"
-							align="end"
-							on:click={(e) => e.preventDefault()}
-						/>
-					</span>
-				</TextArea>
-			</FormGroup>
-			<FormGroup>
-				<TextInput labelText="Website" placeholder="Enter website link..." bind:value={website} />
-			</FormGroup>
-			<!--
-			<FormGroup legendText="Who can view your profile?">
-				<RadioButtonGroup name="radio-button-group" selected="standard">
-					<RadioButton id="radio-1" value="everyone" labelText="Everyone" />
-					<RadioButton id="radio-2" value="friends" labelText="Friends" />
-					<RadioButton id="radio-3" value="none" labelText="No one" />
-				</RadioButtonGroup>
-			</FormGroup>
-			-->
-			<FormGroup>
-				<DatePicker
-					light
-					dateFormat="m/d/Y"
-					datePickerType="single"
-					bind:value={birthday}
-					style="margin-top: 1rem;"
-				>
-					<DatePickerInput placeholder="mm/dd/yyyy">
-						<span slot="labelText" style="display: flex; align-items: center;">
-							<TooltipDefinition
-								tooltipText="Adding your birthday allows you to participate in some age-restricted contests (e.g high school only)."
-								direction="top"
-								align="start"
-							>
-								Birthday
-							</TooltipDefinition>
-						</span>
-					</DatePickerInput>
-				</DatePicker>
-			</FormGroup>
-			<Button on:click={updateProfile} icon={UpdateNow} size="field" disabled={loading}
-				>Update Profile Info</Button
-			>
-		</Form>
-	</Tile>
+<section class="settings">
+	<Tabs class="profile-tabs">
+		<Tab label="Profile Settings" />
+		<Tab label="Account" />
+		<Tab label="Social" />
+		<svelte:fragment slot="content">
+			<TabContent style="width: 100%; height: 100%; flex: 1 0 auto;" class="centered-tab"><ProfileSettings /></TabContent>
+			<TabContent style="width: 100%; height: 100%; flex: 1 0 auto;" class="centered-tab"><AccountSettings /></TabContent>
+			<TabContent style="width: 100%; height: 100%; flex: 1 0 auto;" class="centered-tab"><SocialSettings /></TabContent>
+		</svelte:fragment>
+	</Tabs>
 </section>
 
 <style lang="scss">
-	@import 'src/variables.scss';
-
-	.settings-panel {
+	.settings {
 		display: flex;
-		justify-content: center;
 		flex-direction: column;
+		align-items: center;
 
-		padding: 1rem;
-
-		height: 100%;
 		width: min(100%, 672px);
+		height: calc(100% - 1em);
 	}
 </style>

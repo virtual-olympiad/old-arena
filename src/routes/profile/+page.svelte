@@ -79,7 +79,8 @@
 				.single()
 				.then(({ data, error, status }) => {
 					if (data) {
-						({ username, display_name, about, website, badges, avatar_url } = data);
+						({ username, display_name, about, website, badges = [], avatar_url } = data);
+						about = about ?? "";
 					}
 					if (error && status !== 406) throw error;
 				});
@@ -102,19 +103,21 @@
 			<h1 class="profile-display-name">{display_name}</h1>
 			<span class="profile-username">{username ? '@' + username:''}</span>
 			<div class="profile-badges">
-				{#each badges as badge, i}
-					<Tooltip hideIcon>
-						<div slot="triggerText">
-							<Tag
-								style={`background-color: ${badge.color}; color: ${badge.textcolor}`}
-								icon={Information}
-							>
-								{badge.name}
-							</Tag>
-						</div>
-						<p>{badge.description}</p>
-					</Tooltip>
-				{/each}
+				{#if badges?.length}
+					{#each badges as badge, i}
+						<Tooltip hideIcon>
+							<div slot="triggerText">
+								<Tag
+									style={`background-color: ${badge.color}; color: ${badge.textcolor}`}
+									icon={Information}
+								>
+									{badge.name}
+								</Tag>
+							</div>
+							<p>{badge.description}</p>
+						</Tooltip>
+					{/each}
+				{/if}
 			</div>
 			<p class="profile-bio">
 				{about}

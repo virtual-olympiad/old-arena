@@ -57,7 +57,7 @@
 		}
 	}
 
-	let display_name = '';
+	let display_name = '', username = '';
 
 	onMount(() => {
 		user.subscribe(async user => {
@@ -69,12 +69,12 @@
 
 				supabase
 					.from('profiles')
-					.select(`display_name`)
+					.select(`display_name, username`)
 					.eq('id', user?.id)
 					.single()
 					.then(({ data, error, status }) => {
 						if (data) {
-							({ display_name } = data);
+							({ display_name, username } = data);
 						}
 						if (error && status !== 406) throw error;
 					});
@@ -95,7 +95,7 @@
 		<HeaderGlobalAction icon={DarkModeIcon} on:click={toggleDarkMode} />
 		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
 			<HeaderPanelLinks>
-				<HeaderPanelLink>{display_name || ('Guest' + (socket.id || ''))}</HeaderPanelLink>
+				<HeaderPanelLink>{(display_name || username) || ('Guest' + (socket.id || ''))}</HeaderPanelLink>
 				{#if $user}
 					<HeaderPanelLink on:click={handleLogout} class="header-icon-wrapper"
 						><Logout class="header-icon" />Logout</HeaderPanelLink
