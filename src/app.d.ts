@@ -9,9 +9,8 @@ interface RoomAbstract {
 	name: string;
 	description: string;
 	mode: RoomMode;
-	playerCount: number;
-	playerLimit: number;
-	teamsEnabled: boolean;
+	settings: any;
+	players: any;
 }
 
 // See https://kit.svelte.dev/docs/types#app

@@ -47,10 +47,11 @@
 				status
 			} = await supabase
 				.from('rooms')
-				.select(`id, name, description, mode, players`, { count: 'exact' })
-				.eq('isPublic', 'true');
+				.select(`id, name, description, mode, players, settings`, { count: 'exact' })
+				.is('is_public', true);
 
 			rooms = publicRooms as RoomAbstract[];
+			console.log(rooms);
 
 			if (error && status !== 406) throw error;
 		} catch ({ message }) {
@@ -96,11 +97,11 @@
 				title="Public Rooms"
 				description={rooms.length + ' public rooms open'}
 				headers={roomHeaders}
-				rows={rooms.map((room) => {
+				rows={rooms.map(({settings, ...room}) => {
 					return {
 						...room,
-						players: (room.playerCount ?? '-') + '/' + (room.playerLimit ?? '-'),
-						teamsEnabled: room.teamsEnabled ? 'Enabled' : 'Disabled'
+						players: (room.players.length ?? '-') + '/' + (settings.playerLimit ?? '-'),
+						teamsEnabled: settings.teams ? 'Enabled' : 'Disabled'
 					};
 				})}
 				style="overflow: auto hidden;"

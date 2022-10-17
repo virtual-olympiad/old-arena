@@ -100,7 +100,7 @@
 					<img src={pfpSrc} alt="Avatar" class="profile-avatar" />
 				</div>
 			{/if}
-			<h1 class="profile-display-name">{display_name}</h1>
+			<h1 class="profile-display-name">{display_name || username}</h1>
 			<span class="profile-username">{username ? '@' + username:''}</span>
 			<div class="profile-badges">
 				{#if badges?.length}
