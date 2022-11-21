@@ -2,7 +2,7 @@
 	import CreatePanel from '$lib/Create.svelte';
 	import JoinPanel from '$lib/Join.svelte';
 	import ContestPanel from '$lib/Contest.svelte';
-	import { onMount, type SvelteComponent } from 'svelte/internal';
+	import { onMount, type SvelteComponent } from 'svelte';
 
 	import {
 		ContentSwitcher,
@@ -20,22 +20,19 @@
 	import EarthFilled from 'carbon-icons-svelte/lib/EarthFilled.svelte';
 
 	import { user } from '$lib/sessionStore';
-	import { supabase } from '$lib/supabaseClient';
+	import { goto } from '$app/navigation';
 
 	let modalOpen = false;
 
 	onMount(() => {
 		user.subscribe((user) => {
-			if (!user) {
+			if (!user.user) {
 				modalOpen = true;
 			} else {
 				modalOpen = false;
 			}
 		});
 	});
-
-	// Player username
-	let username = '';
 
 	interface DrawerItem {
 		label: string;
@@ -60,8 +57,8 @@
 	on:click:button--secondary={() => {
 		modalOpen = false;
 	}}
-	on:click:button--primary={() => {
-		window.location.href = '/login';
+	on:click:button--primary={async () => {
+		await goto('/login');
 	}}
 	on:open
 	on:close
@@ -85,7 +82,7 @@
 		kind="info"
 		title="Join our Discord:"
 		subtitle="Don't miss out on regularly hosted events, POTW, groupsolves, and more!"
-		style="flex-shrink: 0;"
+		style="flex-shrink: 0; align-items: center;"
 	>
 		<svelte:fragment slot="actions">
 			<NotificationActionButton>Join Now</NotificationActionButton>
@@ -109,7 +106,7 @@
 		{#if tabIndex === 0}
 			<CreatePanel />
 		{:else if tabIndex === 1}
-			<JoinPanel {username} />
+			<JoinPanel />
 		{:else if tabIndex === 2}
 			<ContestPanel />
 		{/if}

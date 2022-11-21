@@ -134,7 +134,7 @@
 		</AccordionItem>
 		<AccordionItem title="How did you make this site?">
 			<p>
-				This platform was built with SvelteKit (frontend), Node.js, and Firebase (backend). The code
+				This platform was built with SvelteKit (frontend), Node (custom server), and Firebase (backend). The code
 				is open source and available on our <Link href="https://mathetal.org/github">Github</Link>.
 			</p>
 		</AccordionItem>

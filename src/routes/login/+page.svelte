@@ -23,20 +23,22 @@
 
 	let subtitleDetail = '';
 
-	import { supabase } from '$lib/supabaseClient';
+	import { auth } from '$lib/firebase';
+	import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
 
 	onMount(async () => {
 		subtitleDetail = subtitleDetails[Math.floor(subtitleDetails.length * Math.random())];
-		user.subscribe((user) => {
-			if (user) {
-				window.location.href = '/';
+		user.subscribe(async (user) => {
+			if (user.user) {
+				await goto('/');
 			}
 		});
 	});
 
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 
 	let loginEmail: string = '',
 		loginPassword: string = '',
@@ -50,11 +52,9 @@
 			if (!loginPassword){
 				throw new Error('You must enter your password.');
 			}
-			const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
-			if (error) throw error;
-		} catch ({ error_description, message }) {
-			invalidCredentials = (error_description || message) as string;
-			console.error(invalidCredentials);
+			await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+		} catch ({ code, message }) {
+			console.error(`Error ${code}: ${message}`);
 		} finally {
 			loading = false;
 		}
@@ -69,12 +69,10 @@
 		try {
 			resetSent = false;
 			loading = true;
-			const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, { redirectTo: 'https://voly.mathetal.org/resetpassword' });
-			if (error) throw error;
+			await sendPasswordResetEmail(auth, loginEmail);
 			resetSent = true;
-		} catch ({ error_description, message }) {
-			invalidCredentials = (error_description || message) as string;
-			console.error(invalidCredentials);
+		} catch ({ code, message }) {
+			console.error(`Error ${code}: ${message}`);
 		} finally {
 			loading = false;
 		}
@@ -88,7 +86,8 @@
 				lowContrast
 				kind="success"
 				title="We've emailed you the password reset link"
-				subtitle="Wait up to a minute and check your spam folder"
+				subtitle="Wait for up to a minute and also check your spam folder"
+				style="flex-shrink: 0; align-items: center;"
 			/>
 		{/if}
 	{/key}

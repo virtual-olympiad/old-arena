@@ -13,21 +13,21 @@
 
 	import Login from 'carbon-icons-svelte/lib/Login.svelte';
 
-	import { supabase } from '$lib/supabaseClient';
+	import { auth } from '$lib/firebase';
+	import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
-	import { invalid } from '@sveltejs/kit';
+	import { goto } from '$app/navigation';
 
 	onMount(() => {
-		user.subscribe((user) => {
-			if (user) {
-				window.location.href = '/';
+		user.subscribe(async (user) => {
+			if (user.user) {
+				await goto('/');
 			}
 		});
 	});
 
 	let signupEmail = '',
-		signupUsername = '',
 		signupPassword = '',
 		invalidCredentials = '',
 		loading = false;
@@ -35,31 +35,14 @@
 	const handleSignup = async () => {
 		try {
 			loading = true;
-			if (signupUsername.length < 3) {
-				invalidCredentials = 'Username should be at least 3 characters';
-				return;
-			}
 
-			const { data, error } = await supabase.auth.signUp({
-				email: signupEmail,
-				password: signupPassword,
-				options: {
-					data: {
-						username: signupUsername,
-						birthday: new Date()
-					}
-				}
-			});
-
-			if (error) {
-				throw error;
-			}
+			const { user } = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword).catch(error => {throw error;});
+			await sendEmailVerification(user).catch(error => {throw error;});
 			
 			invalidCredentials = '';
-			window.location.href = '/login';
-		} catch ({ error_description, message }) {
-			invalidCredentials = (error_description || message) as string;
-			console.error(invalidCredentials);
+		} catch (error) {
+			invalidCredentials = error?.message;
+			console.error(error);
 		} finally {
 			loading = false;
 		}
@@ -77,13 +60,6 @@
 				light
 				labelText="Email"
 				placeholder="Enter email..."
-				required
-			/>
-			<TextInput
-				bind:value={signupUsername}
-				light
-				labelText="User name"
-				placeholder="Enter user name..."
 				required
 			/>
 			<PasswordInput
