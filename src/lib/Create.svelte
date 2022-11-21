@@ -21,21 +21,39 @@
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 
-	const roomModes = ['Normal', 'Relay', 'Showdown'];
+	const roomModes = ['Standard', 'Relay', 'Showdown'];
 	let roomName = "Mango's room",
 		roomDescription = '',
-		roomMode: RoomMode = 'Standard',
-		roomPublic = true;
+		roomMode: RoomMode = 'standard',
+		roomPublic = true,
+		loading = false;
 
 	import { socket } from '$lib/socket.js';
+	import { auth } from './firebase';
 
-	const createRoom = () => {
-		socket.emit('create-room', {
-			roomName: roomName,
-			roomDescription: roomDescription,
-			roomMode: roomMode,
-			roomPublic: roomPublic
-		});
+	const createRoom = async () => {
+		try {
+			loading = true;
+			let idToken = await auth.currentUser?.getIdToken(true);
+
+			/**
+			socket.emit('create-room', {
+				idToken,
+				data: {
+					roomName,
+					roomDescription,
+					roomMode,
+					roomPublic
+				}
+			});
+			**/
+		}
+		catch (error){
+			console.error(error);
+		}
+		finally {
+			loading = false;
+		}
 	};
 
 	// export let darkMode: boolean;
@@ -46,13 +64,14 @@
 		<Tile style="flex-grow: 1;">
 			<Form on:submit={createRoom}>
 				<FormGroup legendText="Room Name">
-					<TextInput placeholder="Enter room name..." />
+					<TextInput bind:value={roomName} placeholder="Enter room name..." />
 				</FormGroup>
 				<FormGroup>
 					<TextArea
 						placeholder="Enter room description..."
 						maxCount={100}
 						style="max-height: 150px;"
+						bind:value={roomDescription}
 					>
 						<span slot="labelText" style="display: flex; align-items: center;">
 							<span>Room Description</span>
@@ -68,31 +87,31 @@
 					</TextArea>
 				</FormGroup>
 				<FormGroup legendText="Game Mode">
-					<RadioButtonGroup name="radio-button-group" selected="standard">
+					<RadioButtonGroup name="radio-button-group" bind:selected={roomMode}>
 						<RadioButton id="radio-1" value="standard" labelText="Standard" />
 						<RadioButton id="radio-2" value="relay" labelText="Relay" disabled />
 						<RadioButton id="radio-3" value="showdown" labelText="Showdown" disabled />
 					</RadioButtonGroup>
 				</FormGroup>
-				<FormGroup legendText="Room Transparency">
-					<Toggle>
+				<FormGroup legendText="Room Visibility">
+					<Toggle bind:toggled={roomPublic}>
 						<span slot="labelA" style="display: flex; align-items: center;">
-							Public
+							Private
 							<TooltipIcon
 								icon={Information}
 								style="margin-left: 0.5rem"
-								tooltipText="Anyone can see and join your room"
+								tooltipText="Only users with the room code have access to your room"
 								direction="right"
 								align="end"
 								on:click={(e) => e.preventDefault()}
 							/>
 						</span>
 						<span slot="labelB" style="display: flex; align-items: center;">
-							Private
+							Public
 							<TooltipIcon
 								icon={Information}
 								style="margin-left: 0.5rem"
-								tooltipText="Only people that have the room code to can join your lobby"
+								tooltipText="Anyone can view and join your room"
 								direction="right"
 								align="end"
 								on:click={(e) => e.preventDefault()}
@@ -100,7 +119,7 @@
 						</span>
 					</Toggle>
 				</FormGroup>
-				<Button icon={AddFilled}>Create Room</Button>
+				<Button icon={AddFilled} disabled={loading} on:click={createRoom}>Create Room</Button>
 			</Form>
 		</Tile>
 	</div>

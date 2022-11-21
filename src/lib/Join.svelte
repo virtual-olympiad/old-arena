@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { RoomAbstract } from 'src/app';
-
 	import { socket } from '$lib/socket';
 	import { onMount } from 'svelte';
 
@@ -22,6 +21,10 @@
 
 	import type { DataTableHeader } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 
+	import { onValue, ref } from 'firebase/database';
+	import { rtdb } from './firebase';
+	import { user } from '$lib/sessionStore';
+
 	let roomHeaders: DataTableHeader[] = [
 		{ key: 'name', value: 'Room Name' },
 		{ key: 'description', value: 'Description', sort: false },
@@ -31,62 +34,67 @@
 		{ key: 'join', empty: true }
 	];
 
-	import { supabase } from '$lib/supabaseClient';
-
 	let loadingPublicRooms = false;
 
 	let rooms: RoomAbstract[] = [];
 
-	const getPublicRooms = async () => {
-		try {
-			loadingPublicRooms = true;
-
-			let {
-				data: publicRooms,
-				error,
-				status
-			} = await supabase
-				.from('rooms')
-				.select(`id, name, description, mode, players, settings`, { count: 'exact' })
-				.is('is_public', true);
-
-			rooms = publicRooms as RoomAbstract[];
-			console.log(rooms);
-
-			if (error && status !== 406) throw error;
-		} catch ({ message }) {
-			console.error(message);
-		} finally {
-			loadingPublicRooms = false;
+	const parseMode = (mode: string) => {
+		switch(mode){
+			case 'standard':
+				return 'Standard';
+			case 'relay':
+				return 'Relay';
+			case 'showdown':
+				return 'Showdown';
+			default:
+				return 'Standard';
 		}
 	};
+
+	onValue(ref(rtdb, 'rooms'), snapshot => {
+		const snap = snapshot.val();
+		rooms = Object.keys(snap).map(i => {
+			const room = snap[i];
+
+			return {
+				...room,
+				join: i,
+				mode: parseMode(room.mode),
+				players: room.users.length + '/' + room.maxUsers,
+				teamsEnabled: room.teamsEnabled ? 'Enabled':'Disabled'
+			}
+		});
+
+		console.log(rooms);
+	});
 
 	let pageSize = 5;
 	let page = 1;
 
-	onMount(() => {
-		getPublicRooms();
-
-		socket.on('update-rooms', (newRooms) => {
-			rooms = newRooms;
-		});
-	});
-
 	let roomCode: string = '';
 
-	const joinRoom = () => {
-		socket.emit('join-room', {
-			username: username,
-			roomCode: roomCode
-		});
-	};
+	let loadingJoin = false;
 
-	export let username: string;
+	const joinRoom = async (code = roomCode) => {
+		loadingJoin = true;
+		try {
+			const idToken = await $user.user.getIdToken(true);
+			socket.emit('join-room', {
+				idToken,
+				data: {
+					code
+				}
+			});
+		} catch(error){
+			console.error(error);
+		}
+		loadingJoin = false;
+	};
 </script>
 
 <section class="join-room-panel">
 	<article class="roomcode-wrapper">
-		<TextInput maxlength={4} labelText="Join with Code" placeholder="Enter room code..." />
+		<TextInput bind:value={roomCode} maxlength={4} labelText="Join with Code" placeholder="Enter room code..." />
 	</article>
 
 	<section class="room-listing">
@@ -97,27 +105,12 @@
 				title="Public Rooms"
 				description={rooms.length + ' public rooms open'}
 				headers={roomHeaders}
-				rows={rooms.map(({settings, ...room}) => {
-					return {
-						...room,
-						players: (room.players.length ?? '-') + '/' + (settings.playerLimit ?? '-'),
-						teamsEnabled: settings.teams ? 'Enabled' : 'Disabled'
-					};
-				})}
+				rows={rooms}
 				style="overflow: auto hidden;"
 			>
 				<Toolbar>
 					<ToolbarContent>
 						<ToolbarSearch persistent shouldFilterRows />
-						<Button
-							on:click={getPublicRooms}
-							disabled={loadingPublicRooms}
-							kind="ghost"
-							tooltipPosition="top"
-							tooltipAlignment="end"
-							iconDescription="Refresh"
-							icon={Renew}
-						/>
 					</ToolbarContent>
 				</Toolbar>
 				<svelte:fragment slot="cell" let:cell>
@@ -127,6 +120,8 @@
 						{/if}
 					{:else if cell.key === 'join'}
 						<Button
+							disabled={loadingJoin}
+							on:click={()=> joinRoom(cell.value)}
 							style="float: right;"
 							kind="ghost"
 							iconDescription="Join"
