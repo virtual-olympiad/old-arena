@@ -33,7 +33,9 @@
 	import Awake from 'carbon-icons-svelte/lib/Awake.svelte';
 
 	import { user } from '$lib/sessionStore';
-	import { supabase } from '$lib/supabaseClient';
+	import { auth, db, userDoc } from '$lib/firebase';
+	import { doc, getDoc } from 'firebase/firestore';
+	import { signOut } from 'firebase/auth';
 	import { socket } from '$lib/socket';
 	import { onMount } from 'svelte';
 
@@ -47,47 +49,40 @@
 
 	const handleLogout = async () => {
 		try {
-			const { error } = await supabase.auth.signOut();
-
-			if (error) {
-				console.error(error);
-			}
-		} catch ({ message }){
-
+			await signOut(auth);
+		} catch (error) {
+			console.error(error);
 		}
-	}
+	};
 
-	let display_name = '', username = '';
+	let display_name = '';
 
-	onMount(() => {
-		user.subscribe(async user => {
-			try {
-				console.log(user);
-				if (!user){
-					return;
-				}
-
-				supabase
-					.from('profiles')
-					.select(`display_name, username`)
-					.eq('id', user?.id)
-					.single()
-					.then(({ data, error, status }) => {
-						if (data) {
-							({ display_name, username } = data);
-						}
-						if (error && status !== 406) throw error;
-					});
-			} catch ({ message }) {
-				console.error(message);
+	user.subscribe(async (user) => {
+		try {
+			if (!user.user) {
+				return;
 			}
-		});
+
+			const docSnap = await getDoc(doc(db, 'users', user.user?.uid, 'public/profile'));
+
+			if (!docSnap.exists()) {
+				throw new Error('User document does not exist');
+			}
+
+			({ display_name } = docSnap.data());
+		} catch ({ message }) {
+			console.error(message);
+		}
 	});
 
 	export let darkMode: boolean;
 </script>
 
-<Header href="/" company="MEA's" platformName="Virtual Olympiad">
+<Header href="/">
+	<svelte:fragment slot="platform">
+		<img src="/mea_logo.png" alt="MEA Logo" style="padding: .5rem 0; margin-right: .5rem; max-height: 100%"/> 
+		Virtual Olympiad
+	</svelte:fragment>
 	<svelte:fragment slot="skip-to-content">
 		<SkipToContent />
 	</svelte:fragment>
@@ -95,8 +90,17 @@
 		<HeaderGlobalAction icon={DarkModeIcon} on:click={toggleDarkMode} />
 		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
 			<HeaderPanelLinks>
-				<HeaderPanelLink>{(display_name || username) || ('Guest' + (socket.id || ''))}</HeaderPanelLink>
-				{#if $user}
+				<HeaderPanelLink style="word-break: break-all; height: fit-content;"
+					>{display_name || 'Guest' + (socket.id || '')}</HeaderPanelLink
+				>
+				<HeaderPanelDivider>Account</HeaderPanelDivider>
+				<HeaderPanelLink href="/profile" target="_blank" class="header-icon-wrapper"
+					><UserProfile class="header-icon" />Profile</HeaderPanelLink
+				>
+				<HeaderPanelLink href="/settings" target="_blank" class="header-icon-wrapper"
+					><Settings class="header-icon" />Settings</HeaderPanelLink
+				>
+				{#if $user.user}
 					<HeaderPanelLink on:click={handleLogout} class="header-icon-wrapper"
 						><Logout class="header-icon" />Logout</HeaderPanelLink
 					>
@@ -105,13 +109,7 @@
 						><Login class="header-icon" />Login</HeaderPanelLink
 					>
 				{/if}
-				<HeaderPanelDivider>Account</HeaderPanelDivider>
-				<HeaderPanelLink href="/profile" target="_blank" class="header-icon-wrapper"
-					><UserProfile class="header-icon" />Profile</HeaderPanelLink
-				>
-				<HeaderPanelLink href="/profile/settings" target="_blank" class="header-icon-wrapper"
-					><Settings class="header-icon" />Settings</HeaderPanelLink
-				>
+				<HeaderPanelDivider />
 				<HeaderPanelLink href="/premium" target="_blank" class="header-icon-wrapper"
 					><Upgrade class="header-icon" />VOLY Premium</HeaderPanelLink
 				>

@@ -28,9 +28,11 @@
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 
-	import { supabase } from '$lib/supabaseClient';
+	import { db, storage } from '$lib/firebase';
+	import { doc, getDoc } from 'firebase/firestore';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
+	import { getDownloadURL, ref } from 'firebase/storage';
 
 	interface ProfileBadge {
 		name: string;
@@ -43,52 +45,48 @@
 	let loading = false,
 		username = '',
 		display_name = '',
-		about = '',
+		bio = '',
 		website = '',
 		avatar_url = '',
 		badges: ProfileBadge[] = [],
 		pfpSrc = '';
 
-	const downloadImage = (node: any) => {
-		supabase.storage
-			.from('avatars')
-			.download(`${$user?.id}.png`)
-			.then(({ data, error }) => {
-				if (error) throw error;
-				pfpSrc = URL.createObjectURL(data as Blob);
-			})
-			.catch((error) => console.error('Error downloading image: ', error.message));
+	const downloadImage = async (node: any) => {
+		pfpSrc = await getDownloadURL(ref(storage, `pfp/${$user.user.uid}/pfp`));
 	};
 
-	onMount(async () => {
-		user.subscribe((user) => {
-			if (!user) {
-				window.location.href = '/';
-			}
-		});
-
-		downloadImage(null);
-
+	const fetchProfile = async () => {
 		try {
 			loading = true;
 
-			supabase
-				.from('profiles')
-				.select(`username, display_name, about, website, badges, avatar_url`)
-				.eq('id', $user?.id)
-				.single()
-				.then(({ data, error, status }) => {
-					if (data) {
-						({ username, display_name, about, website, badges = [], avatar_url } = data);
-						about = about ?? "";
-					}
-					if (error && status !== 406) throw error;
-				});
-		} catch ({ message }) {
-			console.error(message);
+			await downloadImage(null);
+
+			const [{ value: profileSnap }, { value: userSnap }, { value: achievementSnap }] = await Promise.allSettled(
+				[
+					await getDoc(doc(db, 'users', $user.user.uid, 'public/profile')),
+					await getDoc(doc(db, 'users', $user.user.uid)),
+					await getDoc(doc(db, 'users', $user.user.uid, 'public/achievements'))
+				]
+			);
+
+			if (profileSnap.exists()) {
+				({ display_name = '', bio = '', website = '' } = profileSnap.data());
+			}
+			if (userSnap.exists()) {
+				({ username = '' } = userSnap.data());
+			}
+			if (achievementSnap.exists()){
+				({ badges = [] } = userSnap.data());
+			}
+		} catch (error) {
+			console.error(error);
 		} finally {
 			loading = false;
 		}
+	};
+
+	onMount(()=> {
+		fetchProfile();
 	});
 </script>
 
@@ -96,9 +94,7 @@
 	<Tile style="height: 100%;">
 		<div class="profile-user">
 			{#if pfpSrc}
-				<div class="profile-avatar-wrapper">
-					<img src={pfpSrc} alt="Avatar" class="profile-avatar" />
-				</div>
+				<img src={pfpSrc} alt="Avatar" class="profile-avatar" />
 			{/if}
 			<h1 class="profile-display-name">{display_name || username}</h1>
 			<span class="profile-username">{username ? '@' + username:''}</span>
@@ -120,7 +116,7 @@
 				{/if}
 			</div>
 			<p class="profile-bio">
-				{about}
+				{bio}
 			</p>
 			{#if website}
 				<div class="profile-website">
@@ -164,14 +160,11 @@
 
 		margin: 2rem;
 
-		.profile-avatar-wrapper {
-			border-radius: 50%;
-			border: 1px solid #aaaaaa;
-		}
-
 		.profile-avatar {
 			object-fit: contain;
-			max-height: 6em;
+			height: 6em;
+			border-radius: 50%;
+			outline: 1px solid #aaaaaa;
 		}
 
 		.profile-username {

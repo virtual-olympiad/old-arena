@@ -24,50 +24,41 @@
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 	import UpdateNow from 'carbon-icons-svelte/lib/UpdateNow.svelte';
 
-	import { supabase } from '$lib/supabaseClient';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
-	import { invalid } from '@sveltejs/kit';
+	import { db } from '$lib/firebase';
+	import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 
 	import Avatar from './Avatar.svelte';
 
 	let loading = false,
 		username = '',
 		display_name = '',
-		about = '',
+		bio = '',
 		website = '',
-		avatar_url = '',
 		invalidSettings = '',
 		saveSuccess = false;
 
-	onMount(async () => {
-		user.subscribe((user) => {
-			if (!user) {
-				window.location.href = '/';
-			}
-		});
-
+	const fetchProfile = async () => {
 		try {
 			loading = true;
-			supabase
-				.from('profiles')
-				.select(`username, display_name, about, website, avatar_url`)
-				.eq('id', $user?.id)
-				.single()
-				.then(({ data, error, status }) => {
-					if (data) {
-						({ username, display_name, about, website, avatar_url } = data);
-					}
-					if (error && status !== 406) {
-						throw error;
-					}
-				});
-		} catch ({ error_description, message }) {
-			console.error(error_description || message);
+			const profileSnap = await getDoc(doc(db, 'users', $user.user.uid, 'public/profile'));
+			if (profileSnap.exists()) {
+				({ display_name = '', bio = '', website = '' } = profileSnap.data());
+			}
+
+			const userSnap = await getDoc(doc(db, 'users', $user.user.uid));
+			if (userSnap.exists()) {
+				({ username = '' } = userSnap.data());
+			}
+		} catch (error) {
+			console.error(error);
 		} finally {
 			loading = false;
 		}
-	});
+	};
+
+	onMount(fetchProfile);
 
 	const updateProfile = async () => {
 		try {
@@ -76,38 +67,23 @@
 			}
 			saveSuccess = false;
 			loading = true;
+			invalidSettings = '';
 
-			const updates = {
-				id: $user?.id,
-				username,
-				display_name,
-				about,
-				website,
-				avatar_url,
-				updated_at: new Date()
-			};
+			console.log(username);
+			await setDoc(doc(db, 'users', $user.user.uid), { username }, { merge: true });
+			await setDoc(
+				doc(db, 'users', $user.user.uid, 'public/profile'),
+				{ display_name, bio, website },
+				{ merge: true }
+			);
 
-			let { error, status } = await supabase.from('profiles').upsert(updates);
-
-			if (error && status !== 406) {
-				throw error;
-			} else {
-				invalidSettings = '';
-				saveSuccess = true;
-			}
-		} catch ({ error_description, message }) {
-			invalidSettings = (error_description || message) as string;
-			if (invalidSettings === `new row violates row-level security policy for table "profiles"`) {
-				invalidSettings = 'Username should be at least 3 characters';
-			}
-			if (
-				invalidSettings === `duplicate key value violates unique constraint "profiles_username_key"`
-			) {
-				invalidSettings = 'Username already taken. Please try another';
-			}
-			console.error(invalidSettings);
+			saveSuccess = true;
+		} catch (error) {
+			invalidSettings = error as string;
+			console.error(error);
 		} finally {
 			loading = false;
+			fetchProfile();
 		}
 	};
 </script>
@@ -121,6 +97,7 @@
 					kind="success"
 					title="Successfully Saved Profile Changes"
 					timeout={5000}
+					style="flex-shrink: 0; align-items: center;"
 				/>
 			{/if}
 		{/key}
@@ -128,7 +105,7 @@
 			<FormGroup>
 				<Avatar />
 			</FormGroup>
-			<FormGroup legendText="Display Name">
+			<FormGroup legendText="Display Name" class="no-select">
 				<TextInput placeholder="Enter display name..." bind:value={display_name} />
 			</FormGroup>
 			<FormGroup>
@@ -139,7 +116,7 @@
 					invalidText={invalidSettings}
 				>
 					<span slot="labelText" style="display: flex; align-items: center;">
-						<span>Username</span>
+						<span class="no-select">Username</span>
 						<TooltipIcon
 							icon={Information}
 							style="margin-left: 0.5rem"
@@ -154,16 +131,16 @@
 			<FormGroup>
 				<TextArea
 					placeholder="Enter a bio..."
-					bind:value={about}
+					bind:value={bio}
 					maxCount={100}
 					style="max-height: 150px;"
 				>
 					<span slot="labelText" style="display: flex; align-items: center;">
-						<span>About Me</span>
+						<span class="no-select">About Me</span>
 						<TooltipIcon
 							icon={Information}
 							style="margin-left: 0.5rem"
-							tooltipText="Your bio will show on your profile!"
+							tooltipText="Markdown is supported!"
 							direction="right"
 							align="end"
 							on:click={(e) => e.preventDefault()}
@@ -171,8 +148,8 @@
 					</span>
 				</TextArea>
 			</FormGroup>
-			<FormGroup>
-				<TextInput labelText="Website" placeholder="Enter website link..." bind:value={website} />
+			<FormGroup class="no-select" legendText="Website">
+				<TextInput placeholder="Enter website link..." bind:value={website} />
 			</FormGroup>
 			<!--
 			<FormGroup legendText="Who can view your profile?">

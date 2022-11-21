@@ -24,31 +24,32 @@
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 	import UpdateNow from 'carbon-icons-svelte/lib/UpdateNow.svelte';
 
-	import { supabase } from '$lib/supabaseClient';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
-	import { invalid } from '@sveltejs/kit';
 
 	import Avatar from './Avatar.svelte';
+	import { sendEmailVerification, updateEmail, updatePassword } from 'firebase/auth';
+	import { db } from '$lib/firebase';
+	import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 
 	let loading = false,
 		email = '',
 		password:string,
-		birthday = '',
+		birthday:any = '',
 		invalidSettings = '',
 		saveSuccess = false;
 
 	onMount(async () => {
-		user.subscribe((user) => {
-			if (!user) {
-				window.location.href = '/';
-			}
-		});
+        email = $user.user?.email;
 
-        email = $user.email;
-		birthday = $user?.user_metadata.birthday;
-		let tempB = birthday?.split('-');
-		birthday = [tempB[1], tempB[2], tempB[0]].join('/');
+		const docSnap = await getDoc(doc(db, "users", $user.user.uid, "private/info"));
+		if (docSnap.exists()){
+			({ birthday } = docSnap.data());
+			birthday = birthday.toDate();
+		}
+
+		birthday = [birthday.getUTCMonth() + 1, birthday.getUTCDate(), birthday.getUTCFullYear()].join('/');
+		console.log(birthday);
 	});
 
 	const updateAccount = async () => {
@@ -63,28 +64,27 @@
 				return parseInt(x);
 			});
 
-            const update = {
-				email,
-				data: {
-					birthday: new Date(Date.UTC(UTCBirthday[2], UTCBirthday[0] - 1, UTCBirthday[1])) ?? null
-				}
-			};
+            const parsedBirthday = new Date(Date.UTC(UTCBirthday[2], UTCBirthday[0] - 1, UTCBirthday[1])) ?? null;
 
-            if (password){
-                update['password'] = password;
-            }
-
-			const { error } = await supabase.auth.updateUser(update);
-
-			if (error) {
-				throw error;
-			} else {
-				invalidSettings = '';
-				saveSuccess = true;
+			if (email && email !== $user.user?.email){
+				await updateEmail($user.user, email);
+				await sendEmailVerification($user.user);
 			}
-		} catch ({ error_description, message }) {
-			invalidSettings = (error_description || message) as string;
-			console.error(invalidSettings);
+			if (password){
+				await updatePassword($user.user, password);
+			}
+			if (parsedBirthday){
+				await setDoc(doc(db, "users", $user.user.uid, "private/info"), { birthday: Timestamp.fromDate(parsedBirthday) }, { merge: true });
+			}
+
+			invalidSettings = '';
+			saveSuccess = true;
+		} catch (error) {
+			({ message: invalidSettings } = error);
+			if (invalidSettings == "Firebase: Error (auth/requires-recent-login)."){
+				invalidSettings = "Requires recent login to update credentials. Please login again.";
+			}
+			console.error(error);
 		} finally {
 			loading = false;
 		}
@@ -99,12 +99,13 @@
 				kind="success"
 				title="Successfully Saved Profile Changes"
 				timeout={5000}
+				style="flex-shrink: 0; align-items: center;"
 			/>
 		{/if}
 	{/key}
 	<Tile light style="overflow: auto; height: 100%;">
 		<Form>
-			<FormGroup legendText="Account Credentials">
+			<FormGroup class="no-select" legendText="Account Credentials">
 				<FluidForm>
 					<TextInput
 						bind:value={email}
@@ -156,7 +157,7 @@
 				</DatePicker>
 			</FormGroup>
 			<Button on:click={updateAccount} icon={UpdateNow} size="field" disabled={loading}
-				>Update Profile Info</Button
+				>Update Account Credentials</Button
 			>
 		</Form>
 	</Tile>

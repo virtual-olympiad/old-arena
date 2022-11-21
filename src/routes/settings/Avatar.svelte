@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
-	import { supabase } from '$lib/supabaseClient';
-	import { user } from "$lib/sessionStore";
+	import { user } from '$lib/sessionStore';
 	import { FileUploader, ImageLoader, InlineNotification } from 'carbon-components-svelte';
+	import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+	import { storage } from '$lib/firebase';
 
 	let uploading = false;
 	let updated = false;
@@ -10,17 +11,8 @@
 	let toast = '';
 	let pfp: any[];
 
-	const dispatch = createEventDispatcher();
-
-	const downloadImage = (node: any) => {
-		supabase.storage
-			.from('avatars')
-			.download(`${$user?.id}.png`)
-			.then(({ data, error }) => {
-				if (error) throw error;
-				src = URL.createObjectURL(data as Blob);
-			})
-			.catch((error) => console.error('Error downloading image: ', error.message));
+	const downloadImage = async (node: any) => {
+		src = await getDownloadURL(ref(storage, `pfp/${$user.user.uid}/pfp`));
 	};
 
 	const uploadAvatar = async () => {
@@ -32,25 +24,21 @@
 			}
 
 			const file = pfp[0];
-			if (file.size > 20000) {
-				throw new Error('Your profile picture exceeds the maximum 20KB size.');
+			if (file.size > 50000) {
+				throw new Error('Your profile picture exceeds the maximum 50KB size.');
 			}
 
 			// const fileExt = file.name.split('.').pop();
-			const filePath = `${$user?.id}.png`;
+			const filePath = `${$user.user?.uid}`;
 
-			let { error: uploadError } = await supabase.storage
-				.from('avatars')
-				.upload(filePath, file, { cacheControl: '60', upsert: true });
-
-			if (uploadError) throw uploadError;
+			await uploadBytes(ref(storage, `pfp/${$user.user.uid}/pfp`), file);
 
 			updated = !updated;
 			toast = 'success';
-			dispatch('upload');
-		} catch ({ message }) {
-			toast = message as string;
-			console.error(message);
+			// dispatch('upload');
+		} catch (error) {
+			toast = error.message as string;
+			console.error(error);
 			pfp.pop();
 		} finally {
 			uploading = false;
@@ -67,10 +55,11 @@
 	{#if toast}
 		<InlineNotification
 			lowContrast
-			kind={toast == "success" ? "success":"error"}
-			title={toast == "success" ? "Successfully Updated Avatar" : "Error Uploading: "}
-			subtitle={toast == "success" ? "Allow up to a minute for changes to take place." : toast}
-			timeout={5000}
+			kind={toast == 'success' ? 'success' : 'error'}
+			title={toast == 'success' ? 'Upload Success' : 'Upload Error'}
+			subtitle={toast == 'success' ? "":toast}
+			timeout={10000}
+			style="flex-shrink: 0; align-items: center;"
 		/>
 	{/if}
 {/key}
@@ -80,12 +69,12 @@
 		status={uploading ? 'uploading' : 'complete'}
 		labelTitle="Profile Picture"
 		buttonLabel="Upload file"
-		labelDescription="Only PNG files are accepted."
+		labelDescription="Only PNG and JPG/JPEG files are accepted."
 		iconDescription="Uploaded!"
-		accept={['.png']}
+		class="no-select" 
 		disabled={uploading}
 		bind:files={pfp}
-		on:change={() => setTimeout(uploadAvatar, 100)}
+		on:change={()=> setTimeout(uploadAvatar, 100)}
 	/>
 
 	{#key updated}
