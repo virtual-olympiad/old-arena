@@ -1,6 +1,12 @@
-import { supabase } from '$lib/supabaseClient';
+import { auth } from "$lib/firebase";
 import { user } from '$lib/sessionStore';
+import { onAuthStateChanged } from 'firebase/auth';
 export const load = async (event) => {
-    user.set((await supabase.auth.getUser()).data.user);
+    onAuthStateChanged(auth, currentUser => {
+        user.set({
+            pending: false,
+            user: currentUser
+        });
+    });
 };
 //# sourceMappingURL=+layout.js.map

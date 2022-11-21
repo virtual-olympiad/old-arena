@@ -3,20 +3,31 @@
 	import type { CarbonTheme } from 'carbon-components-svelte/types/Theme/Theme.svelte';
 
 	import 'carbon-components-svelte/css/all.css';
-	import { Theme, Content, ToastNotification } from 'carbon-components-svelte';
+	import { Theme, Content, ToastNotification, Loading } from 'carbon-components-svelte';
 
 	import Navbar from './Navbar.svelte';
-	import { supabase } from '$lib/supabaseClient';
+	import { auth } from '$lib/firebase';
+	import { onAuthStateChanged } from 'firebase/auth';
 	import { user } from '$lib/sessionStore';
+	import { onMount } from 'svelte';
 
-	let darkMode: boolean = true; // 0 Light Mode, 1 Dark Mode
-
+	let authConnected = false;
+	let darkMode: boolean = true; // 0 Light Mode, 1 Dark Mode	
 	let theme: CarbonTheme;
 	$: theme = darkMode ? 'g90' : 'g10';
-
-	supabase.auth.onAuthStateChange((event, session) => {
-		user.set(session?.user);
+	
+	onAuthStateChanged(auth, currentUser => {
+		user.set({
+			pending: $user.pending,
+			user: currentUser
+		});
 	});
+
+	user.subscribe(user => {
+		if (!user.pending){
+			authConnected = true;
+		}
+	})
 </script>
 
 <svelte:head>
@@ -33,9 +44,13 @@
 
 <div class="svelte">
 	<Navbar bind:darkMode />
+	{#if authConnected}
 	<section class="main-content">
 		<slot />
 	</section>
+	{:else}
+	<Loading />
+	{/if}
 </div>
 
 <style lang="scss">
