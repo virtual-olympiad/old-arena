@@ -91,7 +91,7 @@
 		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
 			<HeaderPanelLinks>
 				<HeaderPanelLink style="word-break: break-all; height: fit-content;"
-					>{display_name || 'Guest' + (socket.id || '')}</HeaderPanelLink
+					>{display_name || 'Guest' + (socket.id ? '_' + socket.id: '')}</HeaderPanelLink
 				>
 				<HeaderPanelDivider>Account</HeaderPanelDivider>
 				<HeaderPanelLink href="/profile" target="_blank" class="header-icon-wrapper"
