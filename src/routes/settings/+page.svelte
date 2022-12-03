@@ -20,7 +20,7 @@
 </script>
 
 <section class="settings">
-	<Tabs class="profile-tabs">
+	<Tabs class="flex-tabs">
 		<Tab label="Profile Settings" />
 		<Tab label="Account" />
 		<Tab label="Social" />

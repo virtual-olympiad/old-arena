@@ -21,22 +21,21 @@
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 
-	const roomModes = ['Standard', 'Relay', 'Showdown'];
+	const roomModes = ['Classic', 'Relay', 'Showdown'];
 	let roomName = "Mango's room",
 		roomDescription = '',
-		roomMode: RoomMode = 'standard',
+		roomMode: RoomMode = 'classic',
 		roomPublic = true,
 		loading = false;
 
 	import { socket } from '$lib/socket.js';
-	import { auth } from './firebase';
+	import { auth } from '$lib/firebase';
 
 	const createRoom = async () => {
 		try {
 			loading = true;
 			let idToken = await auth.currentUser?.getIdToken(true);
 
-			/**
 			socket.emit('create-room', {
 				idToken,
 				data: {
@@ -46,7 +45,6 @@
 					roomPublic
 				}
 			});
-			**/
 		}
 		catch (error){
 			console.error(error);
@@ -88,9 +86,9 @@
 				</FormGroup>
 				<FormGroup legendText="Game Mode">
 					<RadioButtonGroup name="radio-button-group" bind:selected={roomMode}>
-						<RadioButton id="radio-1" value="standard" labelText="Standard" />
+						<RadioButton id="radio-1" value="classic" labelText="Classic" />
 						<RadioButton id="radio-2" value="relay" labelText="Relay" disabled />
-						<RadioButton id="radio-3" value="showdown" labelText="Showdown" disabled />
+						<RadioButton id="radio-3" value="deathmatch" labelText="Deathmatch" disabled />
 					</RadioButtonGroup>
 				</FormGroup>
 				<FormGroup legendText="Room Visibility">

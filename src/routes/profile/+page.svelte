@@ -126,7 +126,7 @@
 				</div>
 			{/if}
 		</div>
-		<Tabs class="profile-tabs">
+		<Tabs class="flex-tabs">
 			<Tab label="Stats" />
 			<Tab label="Friends" />
 			<Tab label="Starred Problems" />
