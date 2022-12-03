@@ -21,7 +21,7 @@
 
 	import type { DataTableHeader } from 'carbon-components-svelte/types/DataTable/DataTable.svelte';
 
-	import { onValue, ref } from 'firebase/database';
+	import { get, onValue, ref } from 'firebase/database';
 	import { rtdb } from './firebase';
 	import { user } from '$lib/sessionStore';
 
@@ -39,34 +39,128 @@
 	let rooms: RoomAbstract[] = [];
 
 	const parseMode = (mode: string) => {
-		switch(mode){
-			case 'standard':
-				return 'Standard';
+		switch (mode) {
+			case 'classic':
+				return 'Classic';
 			case 'relay':
 				return 'Relay';
-			case 'showdown':
-				return 'Showdown';
+			case 'deathmatch':
+				return 'Deathmatch';
 			default:
-				return 'Standard';
+				return 'Classic';
 		}
 	};
 
-	onValue(ref(rtdb, 'rooms'), snapshot => {
+	onValue(ref(rtdb, 'publicRooms'), async (snapshot) => {
+		if (loadingPublicRooms) return;
+		loadingPublicRooms = true;
+		try {
+			if (!snapshot.exists()) {
+				rooms = [];
+				return;
+			}
+			const snap = snapshot.val();
+
+			const roomsPromise: any[] = [];
+			Object.keys(snap).forEach((roomId) => {
+				roomsPromise.push(get(ref(rtdb, 'rooms/' + roomId)));
+			});
+
+			rooms = (await Promise.allSettled(roomsPromise)).map((room, i) => {
+				if (room.status === 'rejected') {
+					return;
+				}
+
+				let realRoom: any = room.value;
+				if (!realRoom.exists()){
+					return;
+				}
+
+				realRoom = realRoom.val();
+
+				return {
+					...realRoom,
+					id: Object.keys(snap)[i],
+					join: Object.keys(snap)[i],
+					mode: parseMode(realRoom.mode),
+					players: (Object.keys(realRoom.users).length ?? '0') + '/' + realRoom.maxUsers,
+					teamsEnabled: realRoom.teamsEnabled ? 'Enabled' : 'Disabled'
+				};
+			});
+		} catch (error) {
+			console.error(error);
+		} finally {
+			loadingPublicRooms = false;
+		}
+	});
+
+	const getPublicRooms = async ()=> {
+		if (loadingPublicRooms) return;
+		loadingPublicRooms = true;
+		try {
+			const snapshot = await get(ref(rtdb, 'publicRooms'));
+			if (!snapshot.exists()) {
+				rooms = [];
+				return;
+			}
+
+			const snap = snapshot.val();
+
+			const roomsPromise: any[] = [];
+			Object.keys(snap).forEach((roomId) => {
+				roomsPromise.push(get(ref(rtdb, 'rooms/' + roomId)));
+			});
+
+			rooms = (await Promise.allSettled(roomsPromise)).map((room, i) => {
+				if (room.status === 'rejected') {
+					return;
+				}
+
+				let realRoom: any = room.value;
+				if (!realRoom.exists()){
+					return;
+				}
+
+				realRoom = realRoom.val();
+
+				return {
+					...realRoom,
+					id: Object.keys(snap)[i],
+					join: Object.keys(snap)[i],
+					mode: parseMode(realRoom.mode),
+					players: (Object.keys(realRoom.users).length ?? '0') + '/' + realRoom.maxUsers,
+					teamsEnabled: realRoom.teamsEnabled ? 'Enabled' : 'Disabled'
+				};
+			});
+		} catch (error) {
+			console.error(error);
+		} finally {
+			loadingPublicRooms = false;
+		}
+	}
+	/**
+	onValue(ref(rtdb, 'rooms'), (snapshot) => {
 		const snap = snapshot.val();
-		rooms = Object.keys(snap).map(i => {
+		if (!snapshot.exists()) {
+			rooms = [];
+			return;
+		}
+		rooms = Object.keys(snap).map((i) => {
 			const room = snap[i];
 
 			return {
 				...room,
+				id: i,
 				join: i,
 				mode: parseMode(room.mode),
-				players: room.users.length + '/' + room.maxUsers,
-				teamsEnabled: room.teamsEnabled ? 'Enabled':'Disabled'
-			}
+				players: (Object.keys(room.users).length ?? '0') + '/' + room.maxUsers,
+				teamsEnabled: room.teamsEnabled ? 'Enabled' : 'Disabled'
+			};
 		});
 
 		console.log(rooms);
 	});
+	*/
 
 	let pageSize = 5;
 	let page = 1;
@@ -85,7 +179,7 @@
 					code
 				}
 			});
-		} catch(error){
+		} catch (error) {
 			console.error(error);
 		}
 		loadingJoin = false;
@@ -94,7 +188,21 @@
 
 <section class="join-room-panel">
 	<article class="roomcode-wrapper">
-		<TextInput bind:value={roomCode} maxlength={4} labelText="Join with Code" placeholder="Enter room code..." />
+		<TextInput
+			bind:value={roomCode}
+			maxlength={4}
+			labelText="Join with Code"
+			placeholder="Enter room code..."
+		/>
+		<Button
+			disabled={loadingJoin}
+			on:click={() => joinRoom()}
+			kind="ghost"
+			icon={CaretRight}
+			style="margin-left: .5rem;"
+		>
+			Join
+		</Button>
 	</article>
 
 	<section class="room-listing">
@@ -111,6 +219,15 @@
 				<Toolbar>
 					<ToolbarContent>
 						<ToolbarSearch persistent shouldFilterRows />
+						<Button
+							on:click={getPublicRooms}
+							disabled={loadingPublicRooms}
+							kind="ghost"
+							tooltipPosition="top"
+							tooltipAlignment="end"
+							iconDescription="Refresh"
+							icon={Renew}
+						/>
 					</ToolbarContent>
 				</Toolbar>
 				<svelte:fragment slot="cell" let:cell>
@@ -121,7 +238,7 @@
 					{:else if cell.key === 'join'}
 						<Button
 							disabled={loadingJoin}
-							on:click={()=> joinRoom(cell.value)}
+							on:click={() => joinRoom(cell.value)}
 							style="float: right;"
 							kind="ghost"
 							iconDescription="Join"
@@ -150,6 +267,8 @@
 		text-align: left;
 
 		.roomcode-wrapper {
+			display: flex;
+			align-items: center;
 			margin-bottom: 2rem;
 		}
 
