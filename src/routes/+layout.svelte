@@ -8,8 +8,10 @@
 	import Navbar from './Navbar.svelte';
 	import { auth } from '$lib/firebase';
 	import { onAuthStateChanged } from 'firebase/auth';
-	import { user } from '$lib/sessionStore';
+	import { room, user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
+	import { socket } from '$lib/socket';
+	import { goto } from '$app/navigation';
 
 	let authConnected = false;
 	let darkMode: boolean = true; // 0 Light Mode, 1 Dark Mode	
@@ -18,7 +20,7 @@
 	
 	onAuthStateChanged(auth, currentUser => {
 		user.set({
-			pending: $user.pending,
+			...$user,
 			user: currentUser
 		});
 	});
@@ -28,6 +30,24 @@
 			authConnected = true;
 		}
 	})
+
+	socket.on("create-room-success", ({roomId}) => {
+		room.set({
+			...$room,
+			roomId
+		});
+		
+		goto('/live');
+	});
+
+	socket.on("join-room-success", ({roomId}) => {
+		room.set({
+			...$room,
+			roomId
+		});
+		
+		goto('/live');
+	});
 </script>
 
 <svelte:head>
