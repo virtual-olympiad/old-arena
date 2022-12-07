@@ -90,7 +90,6 @@
 
 		margin-top: 48px;
 		padding: 1rem;
-		padding-bottom: 2rem;
 
 		overflow: auto;
 	}

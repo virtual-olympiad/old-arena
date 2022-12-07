@@ -19,7 +19,8 @@
 		TextArea,
 		Tag,
 		RadioTile,
-		TileGroup
+		TileGroup,
+		NumberInput
 	} from 'carbon-components-svelte';
 
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
@@ -46,8 +47,7 @@
 		}
 	];
 
-	let mode = 'classic';
-	let teamsEnabled = false;
+	let mode = 'classic', teamsEnabled = false, timeLimit = 30;
 
 	$: (mode || true) && updateRoom();
 
@@ -104,6 +104,9 @@
 					</RadioTile>
 				{/each}
 			</TileGroup>
+		</FormGroup>
+		<FormGroup legendText="Game Duration" >
+			<NumberInput min={1} max={90} light helperText="Time limit, in minutes (min 1, max 120)" bind:value={timeLimit} />
 		</FormGroup>
 		<FormGroup disabled legendText="Enable Teams">
 			<Toggle bind:toggled={teamsEnabled}>

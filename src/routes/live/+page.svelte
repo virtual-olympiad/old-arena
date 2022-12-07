@@ -212,13 +212,13 @@
 				<Tab label="Game" />
 				<Tab label="Problemset" />
 				<svelte:fragment slot="content">
-					<TabContent style="width: 100%; height: 100%; flex: 1 0 auto;" class="centered-tab">
+					<TabContent style="overflow: auto; width: 100%; height: 100%;">
 						<RoomSettings />
 					</TabContent>
-					<TabContent class="centered-tab">
+					<TabContent style="overflow: auto; width: 100%; height: 100%;">
 						<GameConfig />
 					</TabContent>
-					<TabContent class="centered-tab">
+					<TabContent style="overflow: auto; width: 100%; height: 100%;">
 						<ProblemGeneration />
 					</TabContent>
 				</svelte:fragment>
@@ -266,7 +266,10 @@
 			}
 		}
 
-		
+		.settings-panel {
+			display: flex;
+			flex-direction: column;
+		}
 	}
 
 	@media screen and (min-width: 1056px) {
