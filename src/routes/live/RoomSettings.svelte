@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { RoomMode } from 'src/app';
-
 	import {
 		Form,
 		FormGroup,
@@ -53,10 +51,8 @@
 	});
 
 	const updateRoom = () => {
-		console.log('cleared');
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(async () => {
-			console.log('updated');
 			try {
 				let updatePromise = [
 					update(ref(rtdb, 'rooms/' + $room.roomId), {

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { RoomMode } from 'src/app';
-
 	import {
 		Form,
 		FormGroup,
@@ -64,7 +62,7 @@
 		},
 		{
 			name: 'MO',
-			key: '',
+			key: 'mo',
 			disabled: true,
 			difficulty: [],
 			description: 'Extremely challenging proof based olympiads'
@@ -72,10 +70,10 @@
 	];
 
 	let contestSelection = {
-		amc8: false,
-		amc10: false,
-		amc12: false,
-		aime: false
+		amc8: true,
+		amc10: true,
+		amc12: true,
+		aime: true
 	};
 
 	let contestDetails = {
@@ -101,24 +99,22 @@
 		}
 	};
 
-	let mode = 'classic';
-	let teamsEnabled = false;
 
-	// $: (mode || true) && updateRoom();
+	$: (contestSelection || true) && updateRoom();
+	$: (contestDetails || true) && updateRoom();
 	$: totalProblems = contest.reduce((prev, { key }) => {
 		return prev + (contestSelection[key] ? contestDetails[key]?.problemCount ?? 0 : 0);
 	}, 0);
 
 	let debounceTimer: any;
 
-	import { socket } from '$lib/socket.js';
 	import { room } from '$lib/sessionStore';
 	import { auth, rtdb } from '$lib/firebase';
 	import { onValue, ref, remove, set, update } from 'firebase/database';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
 
-	onValue(ref(rtdb, 'rooms/' + $room?.roomId), async (snapshot) => {
+	onValue(ref(rtdb, 'gameSettings/' + $room?.roomId), async (snapshot) => {
 		if (!snapshot.exists()) {
 			if (browser) {
 				goto('/');
@@ -126,20 +122,19 @@
 			return;
 		}
 
-		({ mode, teamsEnabled } = snapshot.val());
+		({ contestSelection, contestDetails } = snapshot.val());
 	});
 
-	/**
+
 	const updateRoom = () => {
-		console.log('cleared');
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(async () => {
-			console.log('updated');
 			try {
+				console.log(contestDetails, contestSelection);
 				let updatePromise = [
-					update(ref(rtdb, 'rooms/' + $room.roomId), {
-						mode,
-						teamsEnabled
+					update(ref(rtdb, 'gameSettings/' + $room.roomId), {
+						contestSelection,
+						contestDetails
 					})
 				];
 
@@ -149,28 +144,44 @@
 			}
 		}, 1000);
 	}; 
-	**/
 </script>
 
 <section class="room-panel">
 	<Form style="width: clamp(330px, 100%, 466.833px);">
 		<FormGroup legendText="Problem Sources">
-			<TileGroup bind:selected={mode}>
+			<TileGroup>
 				{#each contest as { name, key, disabled = false, color, description, difficulty }, i}
-					<SelectableTile bind:selected={contestSelection[key]} light {disabled} value={key}>
-						<p style="display: flex; align-items: center;">
-							{name}
-							<Tag style="margin-left: .5rem;" type={color} {disabled}>
-								{#if !disabled}
-									Difficulty: {difficulty[0]} - {difficulty[1]}
-								{:else}
-									Coming Soon
-								{/if}
-							</Tag>
-						</p>
+					{#if !disabled}
+						<SelectableTile bind:selected={contestSelection[key]} light value={key}>
+							<p style="display: flex; align-items: center;">
+								{name}
+								<Tag style="margin-left: .5rem;" type={color}>
+									{#if !disabled}
+										Difficulty: {difficulty[0]} - {difficulty[1]}
+									{:else}
+										Coming Soon
+									{/if}
+								</Tag>
+							</p>
 
-						<span>{description}</span>
-					</SelectableTile>
+							<span>{description}</span>
+						</SelectableTile>
+					{:else}
+						<SelectableTile light {disabled} value={key}>
+							<p style="display: flex; align-items: center;">
+								{name}
+								<Tag style="margin-left: .5rem;" type={color} {disabled}>
+									{#if !disabled}
+										Difficulty: {difficulty[0]} - {difficulty[1]}
+									{:else}
+										Coming Soon
+									{/if}
+								</Tag>
+							</p>
+
+							<span>{description}</span>
+						</SelectableTile>
+					{/if}
 				{/each}
 			</TileGroup>
 		</FormGroup>
@@ -186,13 +197,13 @@
 								</div>
 							</svelte:fragment>
 							<Form style="width: 100%;">
-								<FormGroup legendText="Problem Count" >
+								<FormGroup legendText="Problem Count (max 25)" >
 									<NumberInput min={1} max={25} light size="sm" bind:value={contestDetails[key].problemCount} />
 								</FormGroup>
 								<FormGroup legendText="Score Calculation" >
-									<NumberInput min={1} max={10} helperText="Score value of correct answer" light size="sm" bind:value={contestDetails[key].correctScore} />
+									<NumberInput min={1} max={10} helperText="Score value of correct answer (min 1, max 10)" light size="sm" bind:value={contestDetails[key].correctScore} />
 									<br />
-									<NumberInput min={0} max={10} helperText="Score value of blank answer" light size="sm" bind:value={contestDetails[key].blankScore} />
+									<NumberInput min={0} max={10} helperText="Score value of blank answer (min 0, max 10)" light size="sm" bind:value={contestDetails[key].blankScore} />
 								</FormGroup>
 							</Form>
 						</AccordionItem>

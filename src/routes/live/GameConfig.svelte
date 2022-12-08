@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { RoomMode } from 'src/app';
-
 	import {
 		Form,
 		FormGroup,
@@ -47,13 +45,13 @@
 		}
 	];
 
-	let mode = 'classic', teamsEnabled = false, timeLimit = 30;
+	let mode = 'classic', teamsEnabled = false, timeLimit = 60;
 
 	$: (mode || true) && updateRoom();
+	$: (timeLimit || true) && updateRoom();
 
 	let debounceTimer: any;
 
-	import { socket } from '$lib/socket.js';
 	import { room } from '$lib/sessionStore';
 	import { auth, rtdb } from '$lib/firebase';
 	import { onValue, ref, remove, set, update } from 'firebase/database';
@@ -68,19 +66,18 @@
 			return;
 		}
 
-		({ mode, teamsEnabled } = snapshot.val());
+		({ mode, teamsEnabled, timeLimit } = snapshot.val());
 	});
 
 	const updateRoom = () => {
-		console.log('cleared');
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(async () => {
-			console.log('updated');
-			try {
+			try {				
 				let updatePromise = [
 					update(ref(rtdb, 'rooms/' + $room.roomId), {
 						mode,
-						teamsEnabled
+						teamsEnabled,
+						timeLimit
 					})
 				];
 
@@ -106,7 +103,7 @@
 			</TileGroup>
 		</FormGroup>
 		<FormGroup legendText="Game Duration" >
-			<NumberInput min={1} max={90} light helperText="Time limit, in minutes (min 1, max 120)" bind:value={timeLimit} />
+			<NumberInput min={1} max={180} light helperText="Time limit, in minutes (min 1, max 180)" bind:value={timeLimit} />
 		</FormGroup>
 		<FormGroup disabled legendText="Enable Teams">
 			<Toggle bind:toggled={teamsEnabled}>
