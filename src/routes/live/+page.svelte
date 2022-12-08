@@ -23,19 +23,16 @@
 		TabContent,
 		OutboundLink,
 		Link,
-		Tag
+		Tag,
+		ButtonSet
 	} from 'carbon-components-svelte';
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 	import CaretRight from 'carbon-icons-svelte/lib/CaretRight.svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
+	import Exit from "carbon-icons-svelte/lib/Exit.svelte";
 
-	const roomModes = ['Standard', 'Relay', 'Showdown'];
-	let roomName = "Mango's room",
-		roomDescription = '',
-		roomMode: RoomMode = 'standard',
-		roomPublic = true,
-		loading = false;
+	let loading = false;
 
 	import { socket } from '$lib/socket.js';
 	import { auth, db, rtdb, storage } from '$lib/firebase';
@@ -106,18 +103,18 @@
 		}
 	};
 
-	if (!$room?.roomId){
-		if (browser){
+	if (!$room?.roomId) {
+		if (browser) {
 			goto('/');
 		}
 	}
 
 	onValue(ref(rtdb, 'rooms/' + $room?.roomId), async (snapshot) => {
 		if (!snapshot.exists()) {
-			if (browser){
+			if (browser) {
 				goto('/');
 			}
-			
+
 			users = [];
 			room.set({
 				...$room,
@@ -151,6 +148,44 @@
 			console.error(error);
 		}
 	});
+
+	const exitRoom = async () => {
+		if (loading) return;
+
+		try {
+			loading = true;
+			let idToken = await auth.currentUser?.getIdToken(true);
+
+			socket.emit('exit-room', {
+				idToken
+			});
+		}
+		catch (error){
+			console.error(error);
+		}
+		finally {
+			loading = false;
+		}
+	};
+
+	const startGame = async () => {
+		if (loading) return;
+
+		try {
+			loading = true;
+			let idToken = await auth.currentUser?.getIdToken(true);
+
+			socket.emit('start-game', {
+				idToken
+			});
+		}
+		catch (error){
+			console.error(error);
+		}
+		finally {
+			loading = false;
+		}
+	};
 </script>
 
 <section class="live-panel">
@@ -203,7 +238,10 @@
 					</Tile>
 				{/each}
 			</section>
-			<Button icon={CaretRight}>Start Game</Button>
+			<ButtonSet style="justify-content: center">
+				<Button on:click={exitRoom} kind="secondary"><Exit /> Exit Room</Button>
+				<Button on:click={startGame} icon={CaretRight}>Start Game</Button>
+			</ButtonSet>
 		</section>
 
 		<section class="settings-panel">
