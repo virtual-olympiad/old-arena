@@ -24,13 +24,14 @@
 		OutboundLink,
 		Link,
 		Tag,
-		ButtonSet
+		ButtonSet,
+		ProgressBar
 	} from 'carbon-components-svelte';
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 	import CaretRight from 'carbon-icons-svelte/lib/CaretRight.svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
-	import Exit from "carbon-icons-svelte/lib/Exit.svelte";
+	import Exit from 'carbon-icons-svelte/lib/Exit.svelte';
 
 	let loading = false;
 
@@ -125,6 +126,7 @@
 
 		room.set({
 			...$room,
+			isHost: snapshot.val()?.host?.userId == $user.user.uid,
 			roomInfo: snapshot.val()
 		});
 	});
@@ -159,11 +161,9 @@
 			socket.emit('exit-room', {
 				idToken
 			});
-		}
-		catch (error){
+		} catch (error) {
 			console.error(error);
-		}
-		finally {
+		} finally {
 			loading = false;
 		}
 	};
@@ -176,93 +176,108 @@
 			let idToken = await auth.currentUser?.getIdToken(true);
 
 			socket.emit('start-game', {
-				idToken
+				idToken,
+				data: {
+					roomId: $room.roomId
+				}
 			});
-		}
-		catch (error){
+		} catch (error) {
 			console.error(error);
-		}
-		finally {
+		} finally {
 			loading = false;
 		}
 	};
+
+	socket.on('starting-game', ()=> {
+		startingGame = true;
+	});
+
+	let startingGame = false;
 </script>
 
 <section class="live-panel">
-	<Tile
-		style="width: 100%; height: 100%; display: flex; align-items: center;"
-		class="live-panel-tile"
-	>
-		<section class="users-panel">
-			<h4>{$room.roomInfo?.name}</h4>
-			<div class="room-invite">
-				<h6>Invite Code:</h6>
-				<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
-			</div>
-			<section class="users-menu">
-				{#each users as user, i}
-					<Tile
-						light
-						style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; margin: .25rem 0; ${
-							user.socketId == socket.id
-								? 'box-shadow: 0 0 10px 1px #0160e2'
-								: 'box-shadow: 0 0 5px 0 #0160e2'
-						}`}
-					>
-						<div
-							style={`display: flex; align-items: ${
-								$room.roomInfo.host.userId == user.uid ? 'flex-start' : 'center'
-							};`}
+	{#if startingGame}
+		<ProgressBar
+			style="width: min(672px, 100%)"
+			labelText="Loading Game"
+			helperText="Generating Problems..."
+		/>
+	{:else}
+		<Tile
+			style="width: 100%; height: 100%; display: flex; align-items: center;"
+			class="live-panel-tile"
+		>
+			<section class="users-panel">
+				<h4>{$room.roomInfo?.name}</h4>
+				<div class="room-invite">
+					<h6>Invite Code:</h6>
+					<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
+				</div>
+				<section class="users-menu">
+					{#each users as user, i}
+						<Tile
+							light
+							style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; margin: .25rem 0; ${
+								user.socketId == socket.id
+									? 'box-shadow: 0 0 10px 1px #0160e2'
+									: 'box-shadow: 0 0 5px 0 #0160e2'
+							}`}
 						>
-							{#if user.pfp}
-								<img src={user.pfp} alt="Avatar" class="user-avatar" />
-							{/if}
-							<div style="margin: 0 .5rem 0 1rem;">
-								<div
-									style={`user-select: none; font-size: 16px; ${
-										$room.roomInfo.host.userId == user.uid ? '' : 'margin-bottom: .25rem;'
-									}`}
-								>
-									{user.display_name}
-									{#if $room.roomInfo?.host.userId == user.uid}
-										<Tag type="high-contrast">Host</Tag>
-									{/if}
-								</div>
+							<div
+								style={`display: flex; align-items: ${
+									$room.roomInfo.host.userId == user.uid ? 'flex-start' : 'center'
+								};`}
+							>
+								{#if user.pfp}
+									<img src={user.pfp} alt="Avatar" class="user-avatar" />
+								{/if}
+								<div style="margin: 0 .5rem 0 1rem;">
+									<div
+										style={`user-select: none; font-size: 16px; ${
+											$room.roomInfo.host.userId == user.uid ? '' : 'margin-bottom: .25rem;'
+										}`}
+									>
+										{user.display_name}
+										{#if $room.roomInfo?.host.userId == user.uid}
+											<Tag type="high-contrast">Host</Tag>
+										{/if}
+									</div>
 
-								<div style="user-select: none; color: #bbbbbb;">
-									@{user.username}
+									<div style="user-select: none; color: #bbbbbb;">
+										@{user.username}
+									</div>
 								</div>
 							</div>
-						</div>
-						<Link href={`/profile/${user.uid}`} icon={UserAvatarFilledAlt}>Profile</Link>
-					</Tile>
-				{/each}
+							<Link href={`/profile/${user.uid}`} icon={UserAvatarFilledAlt}>Profile</Link>
+						</Tile>
+					{/each}
+				</section>
+				<ButtonSet style="justify-content: center">
+					<Button on:click={exitRoom} kind="secondary" disabled={loading}><Exit /> Exit Room</Button>
+					<Button on:click={startGame} icon={CaretRight} disabled={loading || !$room.isHost}>Start Game</Button>
+				</ButtonSet>
 			</section>
-			<ButtonSet style="justify-content: center">
-				<Button on:click={exitRoom} kind="secondary"><Exit /> Exit Room</Button>
-				<Button on:click={startGame} icon={CaretRight}>Start Game</Button>
-			</ButtonSet>
-		</section>
 
-		<section class="settings-panel">
-			<Tabs class="flex-tabs">
-				<Tab label="Room" />
-				<Tab label="Game" />
-				<Tab label="Problemset" />
-				<svelte:fragment slot="content">
-					<TabContent style="overflow: auto; width: 100%; height: 100%;">
-						<RoomSettings />
-					</TabContent>
-					<TabContent style="overflow: auto; width: 100%; height: 100%;">
-						<GameConfig />
-					</TabContent>
-					<TabContent style="overflow: auto; width: 100%; height: 100%;">
-						<ProblemGeneration />
-					</TabContent>
-				</svelte:fragment>
-			</Tabs>
-		</section>
-	</Tile>
+			<section class="settings-panel">
+				<Tabs class="flex-tabs">
+					<Tab label="Room" />
+					<Tab label="Game" />
+					<Tab label="Problemset" />
+					<svelte:fragment slot="content">
+						<TabContent style="overflow: auto; width: 100%; height: 100%;">
+							<RoomSettings />
+						</TabContent>
+						<TabContent style="overflow: auto; width: 100%; height: 100%;">
+							<GameConfig />
+						</TabContent>
+						<TabContent style="overflow: auto; width: 100%; height: 100%;">
+							<ProblemGeneration />
+						</TabContent>
+					</svelte:fragment>
+				</Tabs>
+			</section>
+		</Tile>
+	{/if}
 </section>
 
 <style lang="scss">
@@ -270,6 +285,9 @@
 
 	.live-panel {
 		width: min(100%, 1080px);
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		height: 100%;
 
 		.users-panel {
