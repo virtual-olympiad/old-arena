@@ -85,16 +85,16 @@
 			} catch (error) {
 				console.error(error);
 			}
-		}, 1000);
+		}, 500);
 	};
 </script>
 
 <section class="room-panel">
 	<Form style="width: clamp(330px, 100%, 466.833px);">
-		<FormGroup legendText="Gamemode">
+		<FormGroup disabled={!$room.isHost} legendText="Gamemode">
 			<TileGroup bind:selected={mode}>
 				{#each roomModes as { modeName, modeKey, disabled = false, modeDescription }, i}
-					<RadioTile light {disabled} value={modeKey}>
+					<RadioTile light disabled={disabled || !$room.isHost} value={modeKey}>
 						<p>{modeName}</p>
 
 						<span>{modeDescription}</span>
@@ -102,7 +102,7 @@
 				{/each}
 			</TileGroup>
 		</FormGroup>
-		<FormGroup legendText="Game Duration" >
+		<FormGroup disabled={!$room.isHost} legendText="Game Duration" >
 			<NumberInput min={1} max={180} light helperText="Time limit, in minutes (min 1, max 180)" bind:value={timeLimit} />
 		</FormGroup>
 		<FormGroup disabled legendText="Enable Teams">

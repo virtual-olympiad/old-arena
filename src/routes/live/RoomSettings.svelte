@@ -73,16 +73,16 @@
 			} catch (error) {
 				console.error(error);
 			}
-		}, 1000);
+		}, 500);
 	};
 </script>
 
 <section class="room-panel">
 	<Form>
-		<FormGroup legendText="Room Name">
+		<FormGroup disabled={!$room.isHost} legendText="Room Name">
 			<TextInput light bind:value={name} placeholder="Enter room name..." />
 		</FormGroup>
-		<FormGroup>
+		<FormGroup disabled={!$room.isHost}>
 			<TextArea
 				light
 				placeholder="Enter room description..."
@@ -93,6 +93,7 @@
 				<span slot="labelText" style="display: flex; align-items: center;">
 					<span>Room Description</span>
 					<TooltipIcon
+						disabled={!$room.isHost}
 						icon={Information}
 						style="margin-left: 0.5rem"
 						tooltipText="Let others know what your room is about!"
@@ -103,14 +104,15 @@
 				</span>
 			</TextArea>
 		</FormGroup>
-		<FormGroup legendText="Room Size (Player Limit)">
-			<Slider fullWidth light min={$room.roomInfo?.users ? Object.keys($room.roomInfo?.users).length: 1} max={8} bind:value={maxUsers} />
+		<FormGroup disabled={!$room.isHost} legendText="Room Size (Player Limit)">
+			<Slider disabled={!$room.isHost} fullWidth light min={$room.roomInfo?.users ? Object.keys($room.roomInfo?.users).length: 1} max={8} bind:value={maxUsers} />
 		</FormGroup>
-		<FormGroup legendText="Room Visibility">
+		<FormGroup disabled={!$room.isHost} legendText="Room Visibility">
 			<Toggle bind:toggled={roomPublic}>
 				<span slot="labelA" style="display: flex; align-items: center;">
 					Private
 					<TooltipIcon
+						disabled={!$room.isHost}
 						icon={Information}
 						style="margin-left: 0.5rem"
 						tooltipText="Only users with the room code have access to your room"
@@ -122,6 +124,7 @@
 				<span slot="labelB" style="display: flex; align-items: center;">
 					Public
 					<TooltipIcon
+						disabled={!$room.isHost}
 						icon={Information}
 						style="margin-left: 0.5rem"
 						tooltipText="Anyone can view and join your room"

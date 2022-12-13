@@ -58,7 +58,7 @@
 			disabled: false,
 			color: 'red',
 			difficulty: [3, 6],
-			description: 'Very challenging answer based problems for high schoolers'
+			description: 'Challenging answer based problems for high schoolers'
 		},
 		{
 			name: 'MO',
@@ -142,20 +142,20 @@
 			} catch (error) {
 				console.error(error);
 			}
-		}, 1000);
+		}, 500);
 	}; 
 </script>
 
 <section class="room-panel">
 	<Form style="width: clamp(330px, 100%, 466.833px);">
-		<FormGroup legendText="Problem Sources">
+		<FormGroup disabled={!$room.isHost} legendText="Problem Sources">
 			<TileGroup>
 				{#each contest as { name, key, disabled = false, color, description, difficulty }, i}
 					{#if !disabled}
-						<SelectableTile bind:selected={contestSelection[key]} light value={key}>
+						<SelectableTile disabled={!$room.isHost} bind:selected={contestSelection[key]} light value={key}>
 							<p style="display: flex; align-items: center;">
 								{name}
-								<Tag style="margin-left: .5rem;" type={color}>
+								<Tag disabled={!$room.isHost} style="margin-left: .5rem;" type={color}>
 									{#if !disabled}
 										Difficulty: {difficulty[0]} - {difficulty[1]}
 									{:else}
@@ -185,7 +185,7 @@
 				{/each}
 			</TileGroup>
 		</FormGroup>
-		<FormGroup legendText="Problem Distribution">
+		<FormGroup disabled={!$room.isHost} legendText="Problem Distribution">
 			<Accordion style="margin-bottom: 1rem;">
 				{#each contest as { name, key, disabled = false }, i}
 					{#if !disabled}
