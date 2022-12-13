@@ -22,7 +22,7 @@
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 
 	const roomModes = ['Classic', 'Relay', 'Showdown'];
-	let roomName = "Mango's room",
+	let roomName = "",
 		roomDescription = '',
 		roomMode: RoomMode = 'classic',
 		roomPublic = true,

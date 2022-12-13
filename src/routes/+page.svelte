@@ -13,11 +13,15 @@
 		Tile,
 		Modal,
 		UnorderedList,
-		ListItem
+		ListItem,
+		TooltipDefinition,
+		Tooltip,
+		OutboundLink
 	} from 'carbon-components-svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 	import SearchAdvanced from 'carbon-icons-svelte/lib/SearchAdvanced.svelte';
 	import EarthFilled from 'carbon-icons-svelte/lib/EarthFilled.svelte';
+	import Help from 'carbon-icons-svelte/lib/Help.svelte';
 
 	import { user } from '$lib/sessionStore';
 	import { goto } from '$app/navigation';
@@ -53,7 +57,7 @@
 	bind:open={modalOpen}
 	modalHeading="Log In or Create an Account"
 	primaryButtonText="Log In/Sign Up"
-	secondaryButtonText="Continue as Guest"
+	secondaryButtonText="Check out VOLY as Guest"
 	on:click:button--secondary={() => {
 		modalOpen = false;
 	}}
@@ -64,16 +68,46 @@
 	on:close
 	on:submit
 >
-	<p>Creating an account unlocks many more features of Virtual Olympiad, including:</p>
+	<span style="display: flex; align-items: center;">
+		<strong>You'll need to log in to an account to create and join VOLY rooms.</strong>
+		<Tooltip
+			style="margin-left: 1rem; font-size: 12px;"
+			direction="right"
+			align="start"
+			triggerText="Why?"
+			icon={Help}
+		>
+			We are not-for-profit, and solely rely on donations to fund our projects. As such we can
+			currently only operate with rather limited resources (e.g server traffic, user storage). To
+			prevent resource abuse we kindly request that users create accounts before using VOLY.
+		</Tooltip>
+	</span>
+
 	<br />
+	<p>Creating an account also unlocks many more features of Virtual Olympiad, including:</p>
 	<UnorderedList>
-		<ListItem>Customizable username and profile page</ListItem>
-		<ListItem>Ability to create rooms and join certain rooms</ListItem>
-		<ListItem>Collect cookie currency to unlock cosmetic upgrades</ListItem>
-		<ListItem>Social features such as friending & team messaging</ListItem>
+		<ListItem>Customizable profile, username, and avatar</ListItem>
+		<ListItem
+			>Unlock fun cosmetic upgrades with virtual
+			<TooltipDefinition direction="top" align="start">
+				currency
+				<span slot="tooltip" style="font-size: 12px;">
+					Math et al. is not-for-profit, no real money transactions are available or take place on
+					the platform.
+				</span>
+			</TooltipDefinition>
+			earned through playing and participating in events!
+		</ListItem>
+		<ListItem>Social features such as friend system and room chat</ListItem>
+		<ListItem>Collect achievements, keep track of statistics, and much more!</ListItem>
 	</UnorderedList>
 	<br />
-	And more!
+	<p>
+		Also join the
+		<OutboundLink href="https://mathetal.org/discord/">Math et al Discord</OutboundLink>, an
+		active community of 200+ members.
+		Participate in weekly events, discuss STEM with peers and find others to play VOLY with!
+	</p>
 </Modal>
 
 <section>
