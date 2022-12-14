@@ -8,5 +8,6 @@ export const user: Writable<any> = writable({
 export const room: Writable<any> = writable({
     roomId: '',
     isHost: false,
+    gameState: 'none',
     problems: []
-})
+});

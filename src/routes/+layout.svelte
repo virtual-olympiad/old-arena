@@ -31,10 +31,21 @@
 		}
 	})
 
+	socket.on("exit-room-success", () => {
+		room.set({
+			...$room,
+			roomId: '',
+			gameState: 'none'
+		});
+		
+		goto('/live');
+	});
+
 	socket.on("create-room-success", ({roomId}) => {
 		room.set({
 			...$room,
-			roomId
+			roomId,
+			gameState: 'lobby'
 		});
 		
 		goto('/live');
@@ -43,10 +54,18 @@
 	socket.on("join-room-success", ({roomId}) => {
 		room.set({
 			...$room,
-			roomId
+			roomId,
+			gameState: 'lobby'
 		});
 		
 		goto('/live');
+	});
+
+	socket.on("started-game", ()=> {
+		room.set({
+			...$room,
+			gameState: 'game'
+		});
 	});
 </script>
 
@@ -58,6 +77,8 @@
 	/>
 	<!-- Roboto Mono -->
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono" />
+	<!-- Katex -->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css" integrity="sha384-vKruj+a13U8yHIkAyGgK1J3ArTLzrFGBbBc0tDp4ad/EyewESeXE/Iv67Aj8gKZ0" crossorigin="anonymous">
 </svelte:head>
 
 <Theme bind:theme persist persistKey="__carbon-theme" />

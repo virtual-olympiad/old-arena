@@ -6,6 +6,7 @@ export const user = writable({
 export const room = writable({
     roomId: '',
     isHost: false,
+    gameState: 'none',
     problems: []
 });
 //# sourceMappingURL=sessionStore.js.map
