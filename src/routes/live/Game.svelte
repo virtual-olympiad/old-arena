@@ -25,7 +25,8 @@
 		Link,
 		Tag,
 		ButtonSet,
-		ProgressBar
+		ProgressBar,
+		NumberInput
 	} from 'carbon-components-svelte';
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
@@ -37,15 +38,35 @@
 
 	import { socket } from '$lib/socket.js';
 	import { auth, db, rtdb, storage } from '$lib/firebase';
-	import { user, room } from '$lib/sessionStore';
-	import { onValue, ref } from 'firebase/database';
+	import { app, user, room } from '$lib/sessionStore';
+	import { onValue, ref, update } from 'firebase/database';
 	import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 	import { doc, getDoc } from 'firebase/firestore';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import { afterUpdate, beforeUpdate } from 'svelte';
 
-	let users: any = [];
-    let problems: any = [];
+	let users: any[] = [];
+	let problems: any[] = [];
+	let problemAnswers: any[] = [];
+
+	$: (problemAnswers || true) && updateAnswers();
+
+	const updateKatexTheme = () => {
+		if (browser) {
+			if ($app.theme == 'g90') {
+				document.querySelectorAll('.latex, .latexcenter').forEach((img) => {
+					(img as HTMLElement).setAttribute('style', 'filter: invert(1);');
+				});
+			} else {
+				document.querySelectorAll('.latex, .latexcenter').forEach((img) => {
+					(img as HTMLElement).setAttribute('style', '');
+				});
+			}
+		}
+	};
+
+	afterUpdate(updateKatexTheme);
 
 	const downloadImage = async (uid: string) => {
 		let pfpLink = '';
@@ -101,8 +122,19 @@
 			};
 		}
 	};
-    
-    onValue(ref(rtdb, 'rooms/' + $room?.roomId + '/users'), async (snapshot) => {
+
+	const updateAnswers = async () => {
+		console.log(problemAnswers);
+		try {
+			await update(ref(rtdb, 'gameInfo/' + $room?.roomId + '/responses/' + $user.user.uid), {
+				answers: problemAnswers
+			});
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
+	onValue(ref(rtdb, 'rooms/' + $room?.roomId + '/users'), async (snapshot) => {
 		if (!snapshot.exists()) {
 			users = [];
 			return;
@@ -122,15 +154,32 @@
 		}
 	});
 
-	onValue(ref(rtdb, 'roomUsers/' + $room?.roomId + '/problems'), async (snapshot) => {
-		if (!snapshot.exists()) {
-			problems = [];
-			return;
-		}
+	onValue(
+		ref(rtdb, 'gameInfo/' + $room?.roomId + '/responses/' + $user.uid + '/answers'),
+		async (snapshot) => {
+			if (!snapshot.exists()) {
+				return;
+			}
 
-		problems = snapshot.val();
-        console.log(problems);
-	});
+			if (problems.length > 0) {
+				problemAnswers = snapshot.val();
+			}
+		}
+	);
+
+	onValue(
+		ref(rtdb, 'gameInfo/' + $room?.roomId + '/problems'),
+		async (snapshot) => {
+			if (!snapshot.exists()) {
+				console.error('Error Fetching Problems: No problems in database');
+				return;
+			}
+
+			problems = snapshot.val();
+			problemAnswers = new Array(problems.length).fill('');
+		},
+		{ onlyOnce: true }
+	);
 
 	const exitRoom = async () => {
 		if (loading) return;
@@ -152,90 +201,85 @@
 	};
 </script>
 
-<section class="lobby-panel">
-    <Tile
-        style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;"
-        class="live-panel-tile"
-    >
-        {#each problems as { problem }, i}
-            {@html problem}
-        {/each}
-    </Tile>
+<section class="problem-panel">
+	<Tile
+		style="width: 100%; height: 100%; display: flex; flex-direction: column; overflow-y: auto;"
+		class="live-panel-tile"
+	>
+		{#each problems as { problem, title, answerType }, i}
+			<div class="problem" id={'problem-' + i}>
+				<h4 class="problem-title">{title} <!--Problem {i + 1}--></h4>
+				<div class="problem-container">
+					{@html problem}
+				</div>
+
+				{#if answerType == 'amc'}
+					<RadioButtonGroup
+						legendText="Multiple Choice"
+						class="no-select"
+						bind:selected={problemAnswers[i]}
+					>
+						<RadioButton value="">
+							<span slot="labelText" style="font-size: 16px; font-weight: 400;"> - </span>
+						</RadioButton>
+						{#each ['a', 'b', 'c', 'd', 'e'] as choice, i}
+							<RadioButton value={choice}>
+								<span slot="labelText" style="font-size: 16px; font-weight: 400;">
+									{choice.toUpperCase()}
+								</span>
+							</RadioButton>
+						{/each}
+					</RadioButtonGroup>
+				{:else if answerType == 'aime'}
+					<NumberInput
+						allowEmpty
+						hideSteppers
+						light
+						size="sm"
+						label="Integer Answer"
+						min={0}
+						max={999}
+						bind:value={problemAnswers[i]}
+					/>
+				{/if}
+			</div>
+		{/each}
+	</Tile>
 </section>
 
 <style lang="scss">
 	@import 'src/variables.scss';
 
-	.lobby-panel {
+	.problem-panel {
 		width: min(100%, 1080px);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		height: 100%;
 
-		.users-panel {
+		.problem {
+			width: 100%;
+			padding: 1rem 0.5rem;
 			display: flex;
 			flex-direction: column;
-			align-items: center;
-			justify-content: space-between;
+			border-bottom: 1px dotted #999;
 
-			.users-menu {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				width: 100%;
+			.problem-title {
+				font-weight: 500;
+			}
+
+			.problem-container {
 				height: 100%;
-				padding: 0.5rem;
-				margin: 0.5rem 0;
-				overflow: auto;
-
-				.user-avatar {
-					object-fit: contain;
-					height: 4em;
-					border-radius: 50%;
-					outline: 1px solid #aaaaaa;
-				}
+				overflow-x: auto;
+				padding: 1rem 0;
+				margin: 0 0 0.5rem 0;
 			}
-
-			.room-invite {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				margin: 1rem 0;
-			}
-		}
-
-		.settings-panel {
-			display: flex;
-			flex-direction: column;
 		}
 	}
 
 	@media screen and (min-width: 1056px) {
-		.users-panel {
-			min-width: 336px;
-			border-right: 1px solid #525252;
-			height: 100%;
-			flex: 2 0 0;
-		}
-
-		.settings-panel {
-			height: 100%;
-			flex: 3 0 0;
-		}
 	}
 
 	@media screen and (max-width: 1055px) {
-		.users-panel {
-			min-height: 300px;
-			flex: 0 1 auto;
-			width: clamp(336px, 80%, 500px);
-			margin: 1rem 0;
-		}
-
-		.settings-panel {
-			width: 100%;
-			flex: 0 0 auto;
-		}
 	}
 </style>

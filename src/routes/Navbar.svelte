@@ -32,7 +32,7 @@
 	import AsleepFilled from 'carbon-icons-svelte/lib/AsleepFilled.svelte';
 	import Awake from 'carbon-icons-svelte/lib/Awake.svelte';
 
-	import { user } from '$lib/sessionStore';
+	import { app, user } from '$lib/sessionStore';
 	import { auth, db, userDoc } from '$lib/firebase';
 	import { doc, getDoc } from 'firebase/firestore';
 	import { signOut } from 'firebase/auth';
@@ -42,9 +42,8 @@
 	let isOpen1 = false;
 	let isOpen2 = false;
 
-	$: DarkModeIcon = darkMode ? Awake : AsleepFilled;
-	const toggleDarkMode = () => {
-		darkMode = !darkMode;
+	const toggleTheme = () => {
+		$app.theme = ($app.theme == 'g90' ? 'g10':'g90');
 	};
 
 	const handleLogout = async () => {
@@ -74,8 +73,6 @@
 			console.error(message);
 		}
 	});
-
-	export let darkMode: boolean;
 </script>
 
 <Header href="/">
@@ -87,7 +84,7 @@
 		<SkipToContent />
 	</svelte:fragment>
 	<HeaderUtilities>
-		<HeaderGlobalAction icon={DarkModeIcon} on:click={toggleDarkMode} />
+		<HeaderGlobalAction icon={$app?.theme == 'g90' ? Awake : AsleepFilled} on:click={toggleTheme} />
 		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
 			<HeaderPanelLinks>
 				<HeaderPanelLink style="word-break: break-all; height: fit-content;"

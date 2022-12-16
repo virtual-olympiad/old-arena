@@ -123,9 +123,20 @@ div.home-content {
 	}
 }
 
-// make accordition content fullwidth
+// make accordion content fullwidth
 div.bx--accordion__content {
 	padding-right: 1rem;
 }
 
+// game page latex rendering 
+img.latexcenter {
+	display: block;
+	margin: auto;
+	text-align: center;
+	padding: 10px;
+}
 
+// game mcq radio centering
+.problem .bx--radio-button-wrapper .bx--radio-button__label {
+	align-items: center;
+}

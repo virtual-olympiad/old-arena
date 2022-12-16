@@ -1,4 +1,7 @@
 import { writable } from 'svelte/store';
+export const app = writable({
+    theme: 'g90'
+});
 export const user = writable({
     pending: true,
     user: null,
