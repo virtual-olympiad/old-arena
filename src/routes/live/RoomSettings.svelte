@@ -63,12 +63,6 @@
 					})
 				];
 
-				if (roomPublic) {
-					updatePromise.push(set(ref(rtdb, 'publicRooms/' + $room.roomId), true));
-				} else {
-					updatePromise.push(remove(ref(rtdb, 'publicRooms/' + $room.roomId)));
-				}
-
 				await Promise.allSettled(updatePromise);
 			} catch (error) {
 				console.error(error);
