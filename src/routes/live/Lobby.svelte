@@ -46,6 +46,7 @@
 	import { doc, getDoc } from 'firebase/firestore';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import UsersMenu from './UsersMenu.svelte';
 
 	let users: any = [];
 
@@ -118,7 +119,6 @@
 					})
 				)
 			).map((user) => user.value);
-			console.log(users);
 		} catch (error) {
 			console.error(error);
 		}
@@ -188,45 +188,7 @@
 					<h6>Invite Code:</h6>
 					<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
 				</div>
-				<section class="users-menu">
-					{#each users as user, i}
-						<Tile
-							light
-							style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; margin: .25rem 0; ${
-								user.socketId == socket.id
-									? 'box-shadow: 0 0 10px 1px #0160e2'
-									: 'box-shadow: 0 0 5px 0 #0160e2'
-							}`}
-						>
-							<div
-								style={`display: flex; align-items: ${
-									$room.roomInfo.host.userId == user.uid ? 'flex-start' : 'center'
-								};`}
-							>
-								{#if user.pfp}
-									<img src={user.pfp} alt="Avatar" class="user-avatar" />
-								{/if}
-								<div style="margin: 0 .5rem 0 1rem;">
-									<div
-										style={`user-select: none; font-size: 16px; ${
-											$room.roomInfo.host.userId == user.uid ? '' : 'margin-bottom: .25rem;'
-										}`}
-									>
-										{user.display_name}
-										{#if $room.roomInfo?.host.userId == user.uid}
-											<Tag type="high-contrast">Host</Tag>
-										{/if}
-									</div>
-
-									<div style="user-select: none; color: #bbbbbb;">
-										@{user.username}
-									</div>
-								</div>
-							</div>
-							<Link href={`/profile/${user.uid}`} icon={UserAvatarFilledAlt}>Profile</Link>
-						</Tile>
-					{/each}
-				</section>
+				<UsersMenu {users} />
 				<ButtonSet style="justify-content: center">
 					<Button on:click={exitRoom} kind="secondary" disabled={loading}><Exit /> Exit Room</Button>
 					<Button on:click={startGame} icon={CaretRight} disabled={loading || !$room.isHost}>Start Game</Button>
@@ -234,18 +196,18 @@
 			</section>
 
 			<section class="settings-panel">
-				<Tabs class="flex-tabs">
+				<Tabs type="container" class="flex-tabs">
 					<Tab label="Room" />
 					<Tab label="Game" />
 					<Tab label="Problemset" />
 					<svelte:fragment slot="content">
-						<TabContent style="overflow: auto; width: 100%; height: 100%;">
+						<TabContent style="overflow: auto; width: 100%; height: 100%; margin-top: .5rem;">
 							<RoomSettings />
 						</TabContent>
-						<TabContent style="overflow: auto; width: 100%; height: 100%;">
+						<TabContent style="overflow: auto; width: 100%; height: 100%; margin-top: .5rem;">
 							<GameConfig />
 						</TabContent>
-						<TabContent style="overflow: auto; width: 100%; height: 100%;">
+						<TabContent style="overflow: auto; width: 100%; height: 100%; margin-top: .5rem;">
 							<ProblemGeneration />
 						</TabContent>
 					</svelte:fragment>
@@ -270,24 +232,6 @@
 			flex-direction: column;
 			align-items: center;
 			justify-content: space-between;
-
-			.users-menu {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				width: 100%;
-				height: 100%;
-				padding: 0.5rem;
-				margin: 0.5rem 0;
-				overflow: auto;
-
-				.user-avatar {
-					object-fit: contain;
-					height: 4em;
-					border-radius: 50%;
-					outline: 1px solid #aaaaaa;
-				}
-			}
 
 			.room-invite {
 				display: flex;
