@@ -1,8 +1,19 @@
 import { writable, type Writable } from 'svelte/store';
 
 export const app: Writable<any> = writable({
-    theme: 'g90'
+    theme: 'g90',
+    notification: null
 });
+
+export const pushNotification = (kind = "error", title = "", subtitle = "", caption = new Date().toLocaleString(), fullWidth = false, timeout = 0) => {
+    app.update(app => {
+        app.notification = {
+            kind, title, subtitle, caption, fullWidth, timeout
+        };
+        
+        return app;
+    });
+};
 
 export const user: Writable<any> = writable({
     pending: true,
