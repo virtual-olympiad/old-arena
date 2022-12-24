@@ -53,8 +53,6 @@
 			loading = false;
 		}
 	};
-
-	// export let darkMode: boolean;
 </script>
 
 <section class="create-room-panel">

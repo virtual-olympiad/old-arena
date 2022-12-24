@@ -69,7 +69,6 @@
 			loading = true;
 			invalidSettings = '';
 
-			console.log(username);
 			await setDoc(doc(db, 'users', $user.user.uid), { username }, { merge: true });
 			await setDoc(
 				doc(db, 'users', $user.user.uid, 'public/profile'),

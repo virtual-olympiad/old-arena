@@ -49,7 +49,6 @@
 		}
 
 		birthday = [birthday.getUTCMonth() + 1, birthday.getUTCDate(), birthday.getUTCFullYear()].join('/');
-		console.log(birthday);
 	});
 
 	const updateAccount = async () => {

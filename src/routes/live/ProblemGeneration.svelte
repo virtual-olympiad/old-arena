@@ -130,7 +130,6 @@
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(async () => {
 			try {
-				console.log(contestDetails, contestSelection);
 				let updatePromise = [
 					update(ref(rtdb, 'gameSettings/' + $room.roomId), {
 						contestSelection,
