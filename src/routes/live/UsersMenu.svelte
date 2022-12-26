@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { socket } from '$lib/socket';
 	import { room } from '$lib/sessionStore';
-	import { Link, Tag, Tile } from 'carbon-components-svelte';
+	import { Link, Tag, Tile, truncate } from 'carbon-components-svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 
 	export let users: any;
@@ -11,7 +11,7 @@
 	{#each users as user, i}
 		<Tile
 			light
-			style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; margin: .25rem 0; ${
+			style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; overflow-x: auto; margin: .25rem 0; ${
 				user.socketId == socket.id
 					? 'box-shadow: 0 0 10px 1px #0160e2'
 					: 'box-shadow: 0 0 5px 0 #0160e2'
@@ -30,6 +30,7 @@
 						style={`font-size: 16px; ${
 							$room.roomInfo.host.userId == user.uid ? '' : 'margin-bottom: .25rem;'
 						}`}
+						use:truncate
 					>
 						{user.display_name}
 						{#if $room.roomInfo?.host.userId == user.uid}

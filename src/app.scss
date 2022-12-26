@@ -100,6 +100,14 @@ div.home-content {
 	overflow: auto;
 }
 
+// data table dynamic overflow
+.bx--data-table {
+	display: block;
+	max-width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
 .flex-tabs {
 	display: flex;
 	width: 100%;
@@ -134,14 +142,15 @@ div.home-content {
 	}
 }
 
-// game mobile view 
+// game mobile view
 @media screen and (max-width: 1279px) {
 	.game-panel {
 		.game-panel-tile {
 			flex-direction: column;
 
 			// no users or submission content
-			.flex-tabs, .bx--tab-content {
+			.flex-tabs,
+			.bx--tab-content {
 				display: none;
 			}
 		}

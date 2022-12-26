@@ -23,7 +23,7 @@
 
 	import { child, equalTo, get, onValue, orderByChild, query, ref } from 'firebase/database';
 	import { rtdb } from './firebase';
-	import { user, room } from '$lib/sessionStore';
+	import { app, user, room } from '$lib/sessionStore';
 	import { goto } from '$app/navigation';
 
 	let roomHeaders: DataTableHeader[] = [
@@ -122,7 +122,7 @@
 	</article>
 
 	<section class="room-listing">
-		<div style={'border: 1px solid #ffffff;'}>
+		<div style={`outline: 1px solid #${($app.theme == "g90" ? "ffffff":"000000")}`}>
 			<DataTable
 				sortable
 				zebra
@@ -130,7 +130,6 @@
 				description={rooms.length + ' public rooms open'}
 				headers={roomHeaders}
 				rows={rooms}
-				style="overflow: auto hidden;"
 			>
 				<Toolbar>
 					<ToolbarContent>
@@ -176,8 +175,8 @@
 		}
 
 		.room-listing {
-			width: 100%;
-			max-width: 1056px;
+			width: fit-content;
+			max-width: min(100%, 1056px);
 
 			padding-bottom: 1rem;
 		}

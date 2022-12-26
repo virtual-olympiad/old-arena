@@ -51,6 +51,8 @@
 		{ label: 'Contests', icon: EarthFilled, tag: 'Coming Soon', disabled: true }
 	];
 	let tabIndex = 1;
+
+	let innerWidth: number;
 </script>
 
 <Modal
@@ -104,12 +106,13 @@
 	<br />
 	<p>
 		Also join the
-		<OutboundLink href="https://mathetal.org/discord/">Math et al Discord</OutboundLink>, an
-		active community of 200+ members.
-		Participate in weekly events, discuss STEM with peers and find others to play VOLY with!
+		<OutboundLink href="https://mathetal.org/discord/">Math et al Discord</OutboundLink>, an active
+		community of 200+ members. Participate in weekly events, discuss STEM with peers and find others
+		to play VOLY with!
 	</p>
 </Modal>
 
+<svelte:window bind:innerWidth />
 <section>
 	<InlineNotification
 		lowContrast
@@ -124,16 +127,18 @@
 	</InlineNotification>
 
 	<ContentSwitcher bind:selectedIndex={tabIndex} size="xl">
-		{#each tabs as tab}
-			<Switch disabled={tab.disabled}>
-				<div style="display: flex; align-items: center;">
-					<svelte:component this={tab.icon} size={20} style="margin-right: 0.5rem;" />
-					{tab.label}
-					{#if tab.tag}
-						<Tag disabled={tab.disabled} style="margin-left: 0.5rem;">{tab.tag}</Tag>
-					{/if}
-				</div>
-			</Switch>
+		{#each tabs as tab, i}
+			{#if i != 2 || innerWidth >= 672}
+				<Switch disabled={tab.disabled}>
+					<div style="display: flex; align-items: center;">
+						<svelte:component this={tab.icon} size={20} style="margin-right: 0.5rem;" />
+						{tab.label}
+						{#if tab.tag}
+							<Tag disabled={tab.disabled} style="margin-left: 0.5rem;">{tab.tag}</Tag>
+						{/if}
+					</div>
+				</Switch>
+			{/if}
 		{/each}
 	</ContentSwitcher>
 	<Tile light class="home-content">
