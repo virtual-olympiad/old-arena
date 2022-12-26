@@ -168,7 +168,10 @@
 	});
 
 	let startingGame = false;
+	let innerWidth:number;
 </script>
+
+<svelte:window bind:innerWidth />
 
 <section class="lobby-panel">
 	{#if startingGame}
@@ -189,8 +192,8 @@
 					<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
 				</div>
 				<UsersMenu {users} />
-				<ButtonSet style="justify-content: center">
-					<Button on:click={exitRoom} kind="secondary" disabled={loading}><Exit /> Exit Room</Button>
+				<ButtonSet stacked={innerWidth <= 671} style="justify-content: center; margin-top: .5rem;">
+					<Button on:click={exitRoom} kind="secondary" icon={Exit} disabled={loading}>Exit Room</Button>
 					<Button on:click={startGame} icon={CaretRight} disabled={loading || !$room.isHost}>Start Game</Button>
 				</ButtonSet>
 			</section>
@@ -264,7 +267,7 @@
 	@media screen and (max-width: 1055px) {
 		.users-panel {
 			min-height: 300px;
-			flex: 0 1 auto;
+			flex: 0 0 auto;
 			width: clamp(336px, 80%, 500px);
 			margin: 1rem 0;
 		}

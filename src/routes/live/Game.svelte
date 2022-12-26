@@ -39,6 +39,8 @@
 	import CaretRight from 'carbon-icons-svelte/lib/CaretRight.svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 	import Exit from 'carbon-icons-svelte/lib/Exit.svelte';
+	import ChevronDown from 'carbon-icons-svelte/lib/ChevronDown.svelte';
+	import ChevronUp from 'carbon-icons-svelte/lib/ChevronUp.svelte';
 
 	let loading = false;
 
@@ -50,7 +52,7 @@
 	import { doc, getDoc } from 'firebase/firestore';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { afterUpdate, beforeUpdate, onMount } from 'svelte';
+	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import UsersMenu from './UsersMenu.svelte';
 
 	let users: any[] = [];
@@ -205,8 +207,9 @@
 
 	let currentTime = Date.now();
 
+	let timerTimeout: any;
 	const updateTimer = () => {
-		setTimeout(updateTimer, 1000);
+		timerTimeout = setTimeout(updateTimer, 1000);
 
 		currentTime = Date.now();
 	};
@@ -230,6 +233,8 @@
 		);
 	});
 
+	onDestroy(() => clearTimeout(timerTimeout));
+
 	const exitRoom = async () => {
 		if (loading) return;
 
@@ -248,7 +253,14 @@
 			loading = false;
 		}
 	};
+
+	const submitAnswers = () => {};
+
+	let mobileCollapse = false;
+	let innerWidth: number;
 </script>
+
+<svelte:window bind:innerWidth />
 
 <section class="game-panel">
 	<Tile
@@ -256,47 +268,62 @@
 		class="game-panel-tile"
 	>
 		<section class="details-panel">
-			<h4 class="no-select">{$room.roomInfo?.name}</h4>
-			<div class="room-invite">
-				<h6 class="no-select">Invite Code:</h6>
-				<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
+			<div class="mobile-collapse">
+				<Button
+					kind="ghost"
+					icon={mobileCollapse ? ChevronDown : ChevronUp}
+					iconDescription="Collapse"
+					on:click={() => {
+						mobileCollapse = !mobileCollapse;
+					}}
+				/>
 			</div>
-			<Tabs selected={1} class="flex-tabs">
-				<Tab label="Users" />
-				<Tab label="Submission" />
-				<svelte:fragment slot="content">
-					<TabContent style="overflow: auto; width: 100%; height: 100%; margin-bottom: 1rem;">
-						<UsersMenu {users} />
-					</TabContent>
-					<TabContent style="overflow: auto; width: 100%; height: 100%; margin-bottom: 1rem;">
-						<StructuredList condensed>
-							<StructuredListHead>
-								<StructuredListRow head>
-									<StructuredListCell head>Problem</StructuredListCell>
-									<StructuredListCell style="text-align: center;" head>Response</StructuredListCell>
-								</StructuredListRow>
-							</StructuredListHead>
-							<StructuredListBody>
-								{#each savedAnswers as answer, i}
-								<StructuredListRow>
-									<StructuredListCell noWrap>Problem {i + 1}</StructuredListCell>
-									<StructuredListCell style="text-align: center;">{answer?.toString().toUpperCase() || "-"}</StructuredListCell>
-								</StructuredListRow>
-								{/each}
-							</StructuredListBody>
-						</StructuredList>
-					</TabContent>
-				</svelte:fragment>
-			</Tabs>
-			<Button
-				on:click={exitRoom}
-				kind="secondary"
-				disabled={loading}
-				style="margin-top: auto;"
-				icon={Exit}
-			>
-				Exit Room
-			</Button>
+			{#if innerWidth >= 1280 || !mobileCollapse}
+				<h4 class="no-select">{$room.roomInfo?.name}</h4>
+				<div class="room-invite">
+					<h6 class="no-select">Invite Code:</h6>
+					<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
+				</div>
+				<Tabs style="margin-right: 1rem;" selected={1} class="flex-tabs">
+					<Tab label="Users" />
+					<Tab label="Submission" />
+					<svelte:fragment slot="content">
+						<TabContent style="overflow: auto; width: 100%; height: 100%; margin-bottom: 1rem;">
+							<UsersMenu {users} />
+						</TabContent>
+						<TabContent style="overflow: auto; width: 100%; height: 100%; margin-bottom: 1rem;">
+							<StructuredList condensed>
+								<StructuredListHead>
+									<StructuredListRow head>
+										<StructuredListCell head>Problem</StructuredListCell>
+										<StructuredListCell style="text-align: center;" head
+											>Response</StructuredListCell
+										>
+									</StructuredListRow>
+								</StructuredListHead>
+								<StructuredListBody>
+									{#each savedAnswers as answer, i}
+										<StructuredListRow>
+											<StructuredListCell noWrap>Problem {i + 1}</StructuredListCell>
+											<StructuredListCell style="text-align: center;"
+												>{answer?.toString().toUpperCase() || '-'}</StructuredListCell
+											>
+										</StructuredListRow>
+									{/each}
+								</StructuredListBody>
+							</StructuredList>
+						</TabContent>
+					</svelte:fragment>
+				</Tabs>
+			{/if}
+			<ButtonSet stacked={innerWidth >= 1280 || innerWidth < 672} style="justify-content: center;">
+				<Button on:click={exitRoom} kind="secondary" disabled={loading} icon={Exit}>
+					Exit Room
+				</Button>
+				<Button on:click={submitAnswers} icon={CaretRight} disabled={loading || !$room.isHost}
+					>Submit Answers</Button
+				>
+			</ButtonSet>
 		</section>
 		<div class="exam-panel">
 			<article class="info-panel no-select">
@@ -338,32 +365,33 @@
 						<div class="problem-container">
 							{@html problem}
 						</div>
-
-						{#if answerType == 'amc'}
-							<RadioButtonGroup legendText="Multiple Choice" bind:selected={problemAnswers[i]}>
-								<RadioButton value="">
-									<span slot="labelText" style="font-size: 16px; font-weight: 400;"> - </span>
-								</RadioButton>
-								{#each ['a', 'b', 'c', 'd', 'e'] as choice, i}
-									<RadioButton value={choice}>
-										<span slot="labelText" style="font-size: 16px; font-weight: 400;">
-											{choice.toUpperCase()}
-										</span>
+						<div class="answer-container">
+							{#if answerType == 'amc'}
+								<RadioButtonGroup legendText="Multiple Choice" bind:selected={problemAnswers[i]}>
+									<RadioButton value="">
+										<span slot="labelText" style="font-size: 16px; font-weight: 400;"> - </span>
 									</RadioButton>
-								{/each}
-							</RadioButtonGroup>
-						{:else if answerType == 'aime'}
-							<NumberInput
-								allowEmpty
-								hideSteppers
-								light
-								size="sm"
-								label="Integer Answer"
-								min={0}
-								max={999}
-								bind:value={problemAnswers[i]}
-							/>
-						{/if}
+									{#each ['a', 'b', 'c', 'd', 'e'] as choice, i}
+										<RadioButton value={choice}>
+											<span slot="labelText" style="font-size: 16px; font-weight: 400;">
+												{choice.toUpperCase()}
+											</span>
+										</RadioButton>
+									{/each}
+								</RadioButtonGroup>
+							{:else if answerType == 'aime'}
+								<NumberInput
+									allowEmpty
+									hideSteppers
+									light
+									size="sm"
+									label="Integer Answer"
+									min={0}
+									max={999}
+									bind:value={problemAnswers[i]}
+								/>
+							{/if}
+						</div>
 					</div>
 				{/each}
 			</section>
@@ -382,15 +410,30 @@
 		height: 100%;
 
 		.details-panel {
+			position: relative;
 			display: flex;
 			flex: 1 0 0;
 			max-width: 480px;
+			min-height: 48px;
 			height: 100%;
 			border-right: 1px solid #525252;
 
 			display: flex;
 			flex-direction: column;
 			align-items: center;
+
+			.mobile-collapse {
+				display: none;
+				position: absolute;
+				top: 0;
+				right: 0;
+			}
+
+			.room-details {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
 
 			.room-invite {
 				display: flex;
@@ -426,6 +469,7 @@
 
 		.problem-panel {
 			flex: 2 0 0;
+			max-width: 100%;
 			overflow-y: auto;
 			padding-left: 1rem;
 
@@ -446,6 +490,10 @@
 					padding: 1rem 0;
 					margin: 0 0 0.5rem 0;
 				}
+
+				.answer-container {
+					overflow-x: auto;
+				}
 			}
 		}
 	}
@@ -453,6 +501,25 @@
 	@media screen and (min-width: 1056px) {
 	}
 
-	@media screen and (max-width: 1055px) {
+	@media screen and (max-width: 1279px) {
+		.game-panel {
+			.details-panel {
+				flex: 0 0 auto;
+				height: initial;
+				width: 100%;
+				max-width: initial;
+				border-right: none;
+
+				margin-bottom: 1rem;
+
+				.mobile-collapse {
+					display: block;
+				}
+			}
+
+			.exam-panel {
+				max-width: 100%;
+			}
+		}
 	}
 </style>

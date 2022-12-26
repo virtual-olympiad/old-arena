@@ -23,7 +23,8 @@
 
 	import { child, equalTo, get, onValue, orderByChild, query, ref } from 'firebase/database';
 	import { rtdb } from './firebase';
-	import { user } from '$lib/sessionStore';
+	import { user, room } from '$lib/sessionStore';
+	import { goto } from '$app/navigation';
 
 	let roomHeaders: DataTableHeader[] = [
 		{ key: 'name', value: 'Room Name' },
@@ -79,6 +80,13 @@
 
 	const joinRoom = async (code = roomCode) => {
 		loadingJoin = true;
+
+		if (code == $room.roomId){
+			goto('/live');
+			loadingJoin = false;
+			return;
+		}
+
 		try {
 			const idToken = await $user.user.getIdToken(true);
 			socket.emit('join-room', {

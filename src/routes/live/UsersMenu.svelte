@@ -64,4 +64,11 @@
 			outline: 1px solid #aaaaaa;
 		}
 	}
+
+	@media screen and (max-width: 1055px) {
+		.users-menu {
+			height: initial;
+			max-height: 200px;
+		}
+	}
 </style>

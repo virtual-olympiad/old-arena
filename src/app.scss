@@ -124,20 +124,59 @@ div.home-content {
 	}
 }
 
+// lobby mobile view
+@media screen and (max-width: 671px) {
+	.lobby-panel {
+		// remove padding for space
+		.bx--tab-content {
+			padding: 1rem 0;
+		}
+	}
+}
+
+// game mobile view 
+@media screen and (max-width: 1279px) {
+	.game-panel {
+		.game-panel-tile {
+			flex-direction: column;
+
+			// no users or submission content
+			.flex-tabs, .bx--tab-content {
+				display: none;
+			}
+		}
+	}
+}
+
+@media screen and (max-width: 671px) {
+	.game-panel {
+		.game-panel-tile {
+			padding: 1rem 0;
+		}
+	}
+}
+
 // make accordion content fullwidth
 div.bx--accordion__content {
 	padding-right: 1rem;
 }
 
-// game page latex rendering 
-.problem center, img.latexcenter {
-	display: block;
-	margin: auto;
-	text-align: center;
-	padding: 10px;
-}
+.problem {
+	p {
+		margin: 8px 0;
+	}
 
-// game mcq radio centering
-.problem .bx--radio-button-wrapper .bx--radio-button__label {
-	align-items: center;
+	// game page latex rendering
+	center,
+	img.latexcenter {
+		display: block;
+		margin: auto;
+		text-align: center;
+		box-sizing: content-box;
+		padding: 10px;
+	}
+	// game mcq radio centering
+	.bx--radio-button-wrapper .bx--radio-button__label {
+		align-items: center;
+	}
 }

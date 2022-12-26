@@ -86,11 +86,11 @@
 		);
 	});
 
-	socket.on('join-room-success', ({ roomId }) => {
+	socket.on('join-room-success', ({ roomId, gameStarted }) => {
 		room.set({
 			...$room,
 			roomId,
-			gameState: 'lobby'
+			gameState: gameStarted ? 'game':'lobby'
 		});
 
 		goto('/live');
@@ -267,5 +267,11 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: flex-end;
+	}
+
+	@media screen and (max-width: 671px) {
+		.main-content {
+			padding: 0;
+		}
 	}
 </style>
