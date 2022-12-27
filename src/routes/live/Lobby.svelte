@@ -173,7 +173,7 @@
 
 <svelte:window bind:innerWidth />
 
-<section class="lobby-panel">
+<section class="lobby-panel" style={startingGame ? "margin: 1rem;":""}>
 	{#if startingGame}
 		<ProgressBar
 			style="width: min(672px, 100%)"

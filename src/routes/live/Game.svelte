@@ -32,7 +32,11 @@
 		StructuredListHead,
 		StructuredListRow,
 		StructuredListCell,
-		StructuredListBody
+		StructuredListBody,
+		Dropdown,
+		OverflowMenu,
+		OverflowMenuItem,
+		truncate
 	} from 'carbon-components-svelte';
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
@@ -41,6 +45,9 @@
 	import Exit from 'carbon-icons-svelte/lib/Exit.svelte';
 	import ChevronDown from 'carbon-icons-svelte/lib/ChevronDown.svelte';
 	import ChevronUp from 'carbon-icons-svelte/lib/ChevronUp.svelte';
+	import SortAscending from 'carbon-icons-svelte/lib/SortAscending.svelte';
+	import SortDescending from 'carbon-icons-svelte/lib/SortDescending.svelte';
+	import SortRemove from 'carbon-icons-svelte/lib/SortRemove.svelte';
 
 	let loading = false;
 
@@ -214,6 +221,8 @@
 		currentTime = Date.now();
 	};
 
+	let sortAscending = true;
+
 	onMount(() => {
 		updateTimer();
 
@@ -226,6 +235,13 @@
 				}
 
 				({ startTime, timeLimit, problems } = snapshot.val());
+				
+				problems = problems.map((problem, i) => {
+					return {
+						...problem, 
+						index: i
+					}
+				})
 
 				problemAnswers = new Array(problems.length).fill('');
 			},
@@ -342,36 +358,53 @@
 				</Tile>
 			</article>
 			<section class="problem-panel">
-				{#each problems as { problem, title, answerType }, i}
+				{#each problems as { problem, title, answerType, index }, i}
 					<div class="problem no-select" id={'problem-' + i}>
 						<div style="display: flex; align-items: center;">
-							<h4 class="problem-title">
+							<h4 class="problem-title" use:truncate >
 								{title}
-								<!--Problem {i + 1}-->
+								<!--Problem {key + 1}-->
 							</h4>
-
-							{#key savingAnswers ? problemAnswers[i] : null}
-								{#key savedAnswers[i]}
+							{#key savingAnswers ? problemAnswers[index] : null}
+								{#key savedAnswers[index]}
 									<InlineLoading
-										status={saveStatus(i)}
-										description={saveDescription(i) +
-											': ' +
-											(savedAnswers[i]?.toString().toUpperCase() || '-')}
+										status={saveStatus(index)}
+										description={saveDescription(index)}
 										style="padding: 0 1rem; width: fit-content"
 									/>
 								{/key}
 							{/key}
+							{#if i == 0}
+								<Button
+									icon={sortAscending ? SortAscending : SortDescending}
+									kind="ghost"
+									size="field"
+									on:click={() => {
+										sortAscending = !sortAscending;
+										problems.sort((a, b)=> {
+											if (a.difficulty == b.difficulty){
+												return a.index - b.index;
+											}
+
+											return (sortAscending ? 1:-1) * (a.difficulty - b.difficulty);
+										});
+									}}
+									style="margin-left: auto;"
+								>
+									{sortAscending ? 'Sort: Difficulty Ascending' : 'Sort: Difficulty Descending'}
+								</Button>
+							{/if}
 						</div>
 						<div class="problem-container">
 							{@html problem}
 						</div>
 						<div class="answer-container">
 							{#if answerType == 'amc'}
-								<RadioButtonGroup legendText="Multiple Choice" bind:selected={problemAnswers[i]}>
+								<RadioButtonGroup legendText="Multiple Choice" bind:selected={problemAnswers[index]}>
 									<RadioButton value="">
 										<span slot="labelText" style="font-size: 16px; font-weight: 400;"> - </span>
 									</RadioButton>
-									{#each ['a', 'b', 'c', 'd', 'e'] as choice, i}
+									{#each ['a', 'b', 'c', 'd', 'e'] as choice, j}
 										<RadioButton value={choice}>
 											<span slot="labelText" style="font-size: 16px; font-weight: 400;">
 												{choice.toUpperCase()}
@@ -388,7 +421,7 @@
 									label="Integer Answer"
 									min={0}
 									max={999}
-									bind:value={problemAnswers[i]}
+									bind:value={problemAnswers[index]}
 								/>
 							{/if}
 						</div>
