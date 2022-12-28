@@ -235,13 +235,13 @@
 				}
 
 				({ startTime, timeLimit, problems } = snapshot.val());
-				
+
 				problems = problems.map((problem, i) => {
 					return {
-						...problem, 
+						...problem,
 						index: i
-					}
-				})
+					};
+				});
 
 				problemAnswers = new Array(problems.length).fill('');
 			},
@@ -318,11 +318,11 @@
 									</StructuredListRow>
 								</StructuredListHead>
 								<StructuredListBody>
-									{#each savedAnswers as answer, i}
+									{#each problemAnswers as answer, i}
 										<StructuredListRow>
 											<StructuredListCell noWrap>Problem {i + 1}</StructuredListCell>
 											<StructuredListCell style="text-align: center;"
-												>{answer?.toString().toUpperCase() || '-'}</StructuredListCell
+												>{savedAnswers[i]?.toString().toUpperCase() || '-'}</StructuredListCell
 											>
 										</StructuredListRow>
 									{/each}
@@ -358,75 +358,73 @@
 				</Tile>
 			</article>
 			<section class="problem-panel">
-				{#each problems as { problem, title, answerType, index }, i}
-					<div class="problem no-select" id={'problem-' + i}>
-						<div style="display: flex; align-items: center;">
-							<h4 class="problem-title" use:truncate >
-								{title}
-								<!--Problem {key + 1}-->
-							</h4>
-							{#key savingAnswers ? problemAnswers[index] : null}
-								{#key savedAnswers[index]}
-									<InlineLoading
-										status={saveStatus(index)}
-										description={saveDescription(index)}
-										style="padding: 0 1rem; width: fit-content"
-									/>
+				{#key sortAscending}
+					{#each problems as { problem, answerType, index }, i}
+						<div class="problem no-select" id={'problem-' + i}>
+							<div style="display: flex; align-items: center;">
+								<h4 class="problem-title" use:truncate>
+									Problem {index + 1}
+								</h4>
+								{#key savingAnswers ? problemAnswers[index] : null}
+									{#key savedAnswers[index]}
+										<InlineLoading
+											status={saveStatus(index)}
+											description={saveDescription(index)}
+											style="padding: 0 1rem; width: fit-content"
+										/>
+									{/key}
 								{/key}
-							{/key}
-							{#if i == 0}
-								<Button
-									icon={sortAscending ? SortAscending : SortDescending}
-									kind="ghost"
-									size="field"
-									on:click={() => {
-										sortAscending = !sortAscending;
-										problems.sort((a, b)=> {
-											if (a.difficulty == b.difficulty){
-												return a.index - b.index;
-											}
-
-											return (sortAscending ? 1:-1) * (a.difficulty - b.difficulty);
-										});
-									}}
-									style="margin-left: auto;"
-								>
-									{sortAscending ? 'Sort: Difficulty Ascending' : 'Sort: Difficulty Descending'}
-								</Button>
-							{/if}
-						</div>
-						<div class="problem-container">
-							{@html problem}
-						</div>
-						<div class="answer-container">
-							{#if answerType == 'amc'}
-								<RadioButtonGroup legendText="Multiple Choice" bind:selected={problemAnswers[index]}>
-									<RadioButton value="">
-										<span slot="labelText" style="font-size: 16px; font-weight: 400;"> - </span>
-									</RadioButton>
-									{#each ['a', 'b', 'c', 'd', 'e'] as choice, j}
-										<RadioButton value={choice}>
-											<span slot="labelText" style="font-size: 16px; font-weight: 400;">
-												{choice.toUpperCase()}
-											</span>
+								{#if i == 0}
+									<Button
+										icon={sortAscending ? SortAscending : SortDescending}
+										kind="ghost"
+										size="field"
+										on:click={() => {
+											sortAscending = !sortAscending;
+											problems.reverse();
+										}}
+										style="margin-left: auto;"
+									>
+										{sortAscending ? 'Sort: Difficulty Ascending' : 'Sort: Difficulty Descending'}
+									</Button>
+								{/if}
+							</div>
+							<div class="problem-container">
+								{@html problem}
+							</div>
+							<div class="answer-container">
+								{#if answerType == 'amc'}
+									<RadioButtonGroup
+										legendText="Multiple Choice"
+										bind:selected={problemAnswers[index]}
+									>
+										<RadioButton value="">
+											<span slot="labelText" style="font-size: 16px; font-weight: 400;"> - </span>
 										</RadioButton>
-									{/each}
-								</RadioButtonGroup>
-							{:else if answerType == 'aime'}
-								<NumberInput
-									allowEmpty
-									hideSteppers
-									light
-									size="sm"
-									label="Integer Answer"
-									min={0}
-									max={999}
-									bind:value={problemAnswers[index]}
-								/>
-							{/if}
+										{#each ['a', 'b', 'c', 'd', 'e'] as choice, j}
+											<RadioButton value={choice}>
+												<span slot="labelText" style="font-size: 16px; font-weight: 400;">
+													{choice.toUpperCase()}
+												</span>
+											</RadioButton>
+										{/each}
+									</RadioButtonGroup>
+								{:else if answerType == 'aime'}
+									<NumberInput
+										allowEmpty
+										hideSteppers
+										light
+										size="sm"
+										label="Integer Answer"
+										min={0}
+										max={999}
+										bind:value={problemAnswers[index]}
+									/>
+								{/if}
+							</div>
 						</div>
-					</div>
-				{/each}
+					{/each}
+				{/key}
 			</section>
 		</div>
 	</Tile>
