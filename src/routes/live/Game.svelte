@@ -149,7 +149,7 @@
 		savingAnswers = true;
 
 		try {
-			await update(ref(rtdb, 'gameInfo/' + $room?.roomId + '/responses/' + $user.user.uid), {
+			await update(ref(rtdb, 'gameData/' + $room?.roomId + '/responses/' + $user.user.uid), {
 				answers: problemAnswers
 			});
 		} catch (error) {
@@ -179,7 +179,7 @@
 	});
 
 	onValue(
-		ref(rtdb, 'gameInfo/' + $room?.roomId + '/responses/' + $user.user.uid + '/answers'),
+		ref(rtdb, 'gameData/' + $room?.roomId + '/responses/' + $user.user.uid + '/answers'),
 		async (snapshot) => {
 			if (!snapshot.exists()) {
 				return;
@@ -227,7 +227,7 @@
 		updateTimer();
 
 		onValue(
-			ref(rtdb, 'gameInfo/' + $room?.roomId + '/gameDetails'),
+			ref(rtdb, 'gameData/' + $room?.roomId + '/data'),
 			async (snapshot) => {
 				if (!snapshot.exists() || !snapshot.val().problems) {
 					console.error('Error Fetching Problems: No problems in database');
