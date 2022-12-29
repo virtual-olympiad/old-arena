@@ -76,7 +76,7 @@
 		aime: true
 	};
 
-	let contestDetails = {
+	let contestData = {
 		amc8: {
 			problemCount: 1,
 			correctScore: 6,
@@ -101,9 +101,9 @@
 
 
 	$: (contestSelection || true) && updateRoom();
-	$: (contestDetails || true) && updateRoom();
+	$: (contestData || true) && updateRoom();
 	$: totalProblems = contest.reduce((prev, { key }) => {
-		return prev + (contestSelection[key] ? contestDetails[key]?.problemCount ?? 0 : 0);
+		return prev + (contestSelection[key] ? contestData[key]?.problemCount ?? 0 : 0);
 	}, 0);
 
 	let debounceTimer: any;
@@ -122,7 +122,7 @@
 			return;
 		}
 
-		({ contestSelection, contestDetails } = snapshot.val());
+		({ contestSelection, contestData } = snapshot.val());
 	});
 
 
@@ -133,7 +133,7 @@
 				let updatePromise = [
 					update(ref(rtdb, 'gameSettings/' + $room.roomId), {
 						contestSelection,
-						contestDetails
+						contestData
 					})
 				];
 
@@ -192,17 +192,17 @@
 							<svelte:fragment slot="title">
 								<h5>{name}</h5>
 								<div>
-									{contestSelection[key] ? (contestDetails[key].problemCount ?? 0) : 0} problems
+									{contestSelection[key] ? (contestData[key].problemCount ?? 0) : 0} problems
 								</div>
 							</svelte:fragment>
 							<Form style="width: 100%;">
 								<FormGroup legendText="Problem Count (max 25)" >
-									<NumberInput min={1} max={25} light size="sm" bind:value={contestDetails[key].problemCount} />
+									<NumberInput min={1} max={25} light size="sm" bind:value={contestData[key].problemCount} />
 								</FormGroup>
 								<FormGroup legendText="Score Calculation" >
-									<NumberInput min={1} max={10} helperText="Score value of correct answer (min 1, max 10)" light size="sm" bind:value={contestDetails[key].correctScore} />
+									<NumberInput min={1} max={10} helperText="Score value of correct answer (min 1, max 10)" light size="sm" bind:value={contestData[key].correctScore} />
 									<br />
-									<NumberInput min={0} max={10} helperText="Score value of blank answer (min 0, max 10)" light size="sm" bind:value={contestDetails[key].blankScore} />
+									<NumberInput min={0} max={10} helperText="Score value of blank answer (min 0, max 10)" light size="sm" bind:value={contestData[key].blankScore} />
 								</FormGroup>
 							</Form>
 						</AccordionItem>
