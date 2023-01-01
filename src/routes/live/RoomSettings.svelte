@@ -99,7 +99,7 @@
 			</TextArea>
 		</FormGroup>
 		<FormGroup disabled={!$room.isHost} legendText="Room Size (Player Limit)">
-			<Slider disabled={!$room.isHost} fullWidth light min={$room.roomInfo?.users ? Object.keys($room.roomInfo?.users).length: 1} max={8} bind:value={maxUsers} />
+			<Slider disabled={!$room.isHost} fullWidth light min={$room.roomData?.users ? Object.keys($room.roomData?.users).length: 1} max={8} bind:value={maxUsers} />
 		</FormGroup>
 		<FormGroup disabled={!$room.isHost} legendText="Room Visibility">
 			<Toggle bind:toggled={roomPublic}>

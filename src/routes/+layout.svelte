@@ -86,11 +86,11 @@
 		);
 	});
 
-	socket.on('join-room-success', ({ roomId, gameStarted }) => {
+	socket.on('join-room-success', ({ roomId, gameState }) => {
 		room.set({
 			...$room,
 			roomId,
-			gameState: gameStarted ? 'game':'lobby'
+			gameState: gameState == 'lobby' ? 'lobby':'game'
 		});
 
 		goto('/live');

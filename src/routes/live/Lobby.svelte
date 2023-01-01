@@ -186,7 +186,7 @@
 			class="live-panel-tile"
 		>
 			<section class="users-panel">
-				<h4>{$room.roomInfo?.name}</h4>
+				<h4>{$room.roomData?.name}</h4>
 				<div class="room-invite">
 					<h6>Invite Code:</h6>
 					<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />

@@ -19,7 +19,7 @@
 		>
 			<div
 				style={`display: flex; align-items: ${
-					$room.roomInfo.host.userId == user.uid ? 'flex-start' : 'center'
+					$room.roomData.host.userId == user.uid ? 'flex-start' : 'center'
 				};`}
 			>
 				{#if user.pfp}
@@ -28,12 +28,12 @@
 				<div style="margin: 0 .5rem 0 1rem;">
 					<div
 						style={`font-size: 16px; ${
-							$room.roomInfo.host.userId == user.uid ? '' : 'margin-bottom: .25rem;'
+							$room.roomData.host.userId == user.uid ? '' : 'margin-bottom: .25rem;'
 						}`}
 						use:truncate
 					>
 						{user.display_name}
-						{#if $room.roomInfo?.host.userId == user.uid}
+						{#if $room.roomData?.host.userId == user.uid}
 							<Tag type="high-contrast">Host</Tag>
 						{/if}
 					</div>

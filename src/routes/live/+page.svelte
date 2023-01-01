@@ -16,7 +16,7 @@
 
             room.set({
 				...$room,
-				roomInfo: null
+				roomData: null
 			});
 			return;
 		}
@@ -24,7 +24,7 @@
 		room.set({
 			...$room,
 			isHost: snapshot.val()?.host?.userId == $user.user.uid,
-			roomInfo: snapshot.val()
+			roomData: snapshot.val()
 		});
 	});
 </script>
