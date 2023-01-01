@@ -7,7 +7,8 @@
 		HeaderPanelLinks,
 		HeaderPanelDivider,
 		HeaderPanelLink,
-		SkipToContent
+		SkipToContent,
+		CodeSnippet
 	} from 'carbon-components-svelte';
 	import SettingsAdjust from 'carbon-icons-svelte/lib/SettingsAdjust.svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
@@ -73,12 +74,16 @@
 			console.error(message);
 		}
 	});
+
+	let innerWidth: number;
 </script>
+
+<svelte:window bind:innerWidth />
 
 <Header href="/">
 	<svelte:fragment slot="platform">
 		<img src="/mea_logo.png" alt="MEA Logo" style="padding: .5rem 0; margin-right: .5rem; max-height: 100%"/> 
-		Virtual Olympiad
+		{innerWidth >= 672 ? "Virtual Olympiad":"VOLY"}
 	</svelte:fragment>
 	<svelte:fragment slot="skip-to-content">
 		<SkipToContent />

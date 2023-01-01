@@ -105,8 +105,8 @@
 <section class="join-room-panel">
 	<article class="roomcode-wrapper">
 		<TextInput
+			light
 			bind:value={roomCode}
-			maxlength={4}
 			labelText="Join with Code"
 			placeholder="Enter room code..."
 		/>

@@ -16,14 +16,22 @@
 		ListItem,
 		TooltipDefinition,
 		Tooltip,
-		OutboundLink
+		OutboundLink,
+		Button,
+		ButtonSet,
+		Link
 	} from 'carbon-components-svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 	import SearchAdvanced from 'carbon-icons-svelte/lib/SearchAdvanced.svelte';
 	import EarthFilled from 'carbon-icons-svelte/lib/EarthFilled.svelte';
 	import Help from 'carbon-icons-svelte/lib/Help.svelte';
 
-	import { user } from '$lib/sessionStore';
+	import LogoInstagram from 'carbon-icons-svelte/lib/LogoInstagram.svelte';
+	import LogoGithub from 'carbon-icons-svelte/lib/LogoGithub.svelte';
+	import LogoDiscord from 'carbon-icons-svelte/lib/LogoDiscord.svelte';
+	import LogoYoutube from 'carbon-icons-svelte/lib/LogoYoutube.svelte';
+
+	import { app, user } from '$lib/sessionStore';
 	import { goto } from '$app/navigation';
 
 	let modalOpen = false;
@@ -106,27 +114,36 @@
 	<br />
 	<p>
 		Also join the
-		<OutboundLink href="https://mathetal.org/discord/">Math et al Discord</OutboundLink>, an active
+		<OutboundLink href="https://discord.gg/3eXC9UE6rT">Math et al Discord</OutboundLink>, an active
 		community of 200+ members. Participate in weekly events, discuss STEM with peers and find others
 		to play VOLY with!
 	</p>
 </Modal>
 
 <svelte:window bind:innerWidth />
-<section>
-	<InlineNotification
-		lowContrast
-		kind="info"
-		title="Join our Discord:"
-		subtitle="Don't miss out on regularly hosted events, POTW, groupsolves, and more!"
-		style="flex-shrink: 0; align-items: center;"
+<section class="no-select">
+	<div class="notice">
+		<a href="/donate" class="notice-label bx--label">COMMUNITY NOTICE</a>
+		<InlineNotification
+			lowContrast
+			kind="info"
+			title="Join our Discord:"
+			subtitle="Don't miss out on regularly hosted events, POTW, groupsolves, and more!"
+			style="flex-shrink: 0; align-items: center; margin: 0; margin-bottom: .5rem;"
+			hideCloseButton
+		>
+			<svelte:fragment slot="actions">
+				<NotificationActionButton href="https://discord.gg/3eXC9UE6rT"
+					>Join Now</NotificationActionButton
+				>
+			</svelte:fragment>
+		</InlineNotification>
+	</div>
+	<ContentSwitcher
+		style="margin: .5rem 0; max-width: 1311px;"
+		bind:selectedIndex={tabIndex}
+		size="xl"
 	>
-		<svelte:fragment slot="actions">
-			<NotificationActionButton>Join Now</NotificationActionButton>
-		</svelte:fragment>
-	</InlineNotification>
-
-	<ContentSwitcher bind:selectedIndex={tabIndex} size="xl">
 		{#each tabs as tab, i}
 			{#if i != 2 || innerWidth >= 672}
 				<Switch disabled={tab.disabled}>
@@ -141,7 +158,7 @@
 			{/if}
 		{/each}
 	</ContentSwitcher>
-	<Tile light class="home-content">
+	<Tile style={`border-radius: .25rem; max-height: 671px; max-width: 1311px;`} class="home-content">
 		{#if tabIndex === 0}
 			<CreatePanel />
 		{:else if tabIndex === 1}
@@ -150,6 +167,25 @@
 			<ContestPanel />
 		{/if}
 	</Tile>
+	<footer>
+		<Button target="_blank" href="https://discord.gg/3eXC9UE6rT" icon={LogoDiscord} kind="ghost" />
+		<Button target="_blank" href="https://github.com/Math-et-al" icon={LogoGithub} kind="ghost" />
+		<div style="margin: 0 1rem;">
+			2022-{new Date().getFullYear()} © MATH ET AL
+		</div>
+		<Button
+			target="_blank"
+			href="https://www.instagram.com/math_et_al"
+			icon={LogoInstagram}
+			kind="ghost"
+		/>
+		<Button
+			target="_blank"
+			href="https://www.youtube.com/@math_et_al"
+			icon={LogoYoutube}
+			kind="ghost"
+		/>
+	</footer>
 </section>
 
 <style lang="scss">
@@ -159,8 +195,64 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		margin-bottom: 48px;
 
 		width: 100%;
 		height: 100%;
+	}
+
+	.notice {
+		.notice-label {
+			position: relative;
+
+			&::after {
+				content: '';
+				position: absolute;
+				width: 100%;
+				transform: scaleX(0);
+				height: 2px;
+				bottom: 0;
+				left: 0;
+				background-color: var(--cds-text-02);
+				transform-origin: bottom right;
+				transition: transform 0.25s ease-out;
+			}
+
+			&:hover {
+				cursor: pointer;
+
+				&::after {
+					transform: scaleX(1);
+					transform-origin: bottom left;
+				}
+			}
+		}
+	}
+
+	footer {
+		position: fixed;
+		bottom: 0;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+
+		margin: 0.25rem 1rem;
+		margin-top: auto;
+
+		border-top: 1px dotted #525252;
+	}
+
+	@media (max-width: 671px), (max-height: 719px) {
+		.notice {
+			display: none;
+		}
+
+		section {
+			margin-bottom: initial;
+		}
+
+		footer {
+			display: none;
+		}
 	}
 </style>
