@@ -70,14 +70,13 @@
 	};
 
 	const isCorrect = (response: string | number, solution: any) => {
-		return (Array.isArray(solution) && solution.includes(response)) ||
-			solution === response;
+		return (Array.isArray(solution) && solution.includes(response)) || solution === response;
 	};
 
 	export let solutions: any, savedAnswers: any;
 </script>
 
-{#each solutions as { answer, difficulty, problemTitle, link, problem, answerType }, i}
+{#each solutions as { answer, difficulty, problemTitle, link, problem, answerType, metadata }, i}
 	<div class="problem" id={'problem-' + i}>
 		<div
 			style="display: flex; flex-direction: row; align-items: center; justify-content: flex-end;"
@@ -105,14 +104,33 @@
 			{/if}
 			<OverflowMenu flipped>
 				<OverflowMenuItem>
-					<Launch style="margin-right: .25rem;" /> View on AoPS
+					<a
+						role="menuitem"
+						tabindex="-1"
+						class="bx--overflow-menu-options__btn"
+                        target="_blank"
+						href={link}
+						style="padding: 0;"
+					>
+						<Launch style="margin-right: .25rem;" />
+						View on AoPS
+					</a>
 				</OverflowMenuItem>
 				<OverflowMenuItem>
 					<svelte:component this={difficultyLevel(difficulty).icon} style="margin-right: .25rem;" />
 					{'Difficulty: ' + difficulty.toFixed(2)}
 				</OverflowMenuItem>
 				<OverflowMenuItem hasDivider danger>
-					<WarningFilled style="margin-right: .25rem;" /> Report Problem
+					<a
+						role="menuitem"
+						tabindex="-1"
+						class="bx--overflow-menu-options__btn"
+						target="_blank"
+						href={`https://github.com/Math-et-al/vo/issues/new?assignees=polarr&labels=problem-bug&template=problem-bug.md&title=[PROBLEM+BUG]+${metadata.year}+${metadata.contestName}+%23${metadata.problemIndex}`}
+					>
+						<WarningFilled style="margin-right: .25rem;" />
+						Report Problem
+					</a>
 				</OverflowMenuItem>
 			</OverflowMenu>
 		</div>
@@ -150,7 +168,7 @@
 					min={0}
 					max={999}
 					bind:value={savedAnswers[i]}
-					helperText={'Answer: ' + (Array.isArray(answer) ? answer.join(', '): answer)}
+					helperText={'Answer: ' + (Array.isArray(answer) ? answer.join(', ') : answer)}
 				/>
 			{/if}
 		</div>
