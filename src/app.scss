@@ -170,6 +170,12 @@ div.bx--accordion__content {
 	padding-right: 1rem;
 }
 
+.game-panel {
+	.bx--structured-list-td {
+		max-width: 100px;
+	}
+}
+
 .problem {
 	p {
 		margin: 8px 0;
@@ -187,5 +193,14 @@ div.bx--accordion__content {
 	// game mcq radio centering
 	.bx--radio-button-wrapper .bx--radio-button__label {
 		align-items: center;
+	}
+
+	.bx--overflow-menu-options__btn > .bx--overflow-menu-options__btn {
+		padding: 0;
+
+		&:hover {
+			background-color: initial;
+			color: inherit;
+		}
 	}
 }

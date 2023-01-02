@@ -90,7 +90,7 @@
 		room.set({
 			...$room,
 			roomId,
-			gameState: gameState == 'lobby' ? 'lobby':'game'
+			gameState: gameState == 'game' ? 'game':'lobby'
 		});
 
 		goto('/live');

@@ -45,6 +45,7 @@
 	import Exit from 'carbon-icons-svelte/lib/Exit.svelte';
 	import ChevronDown from 'carbon-icons-svelte/lib/ChevronDown.svelte';
 	import ChevronUp from 'carbon-icons-svelte/lib/ChevronUp.svelte';
+	import ResultNew from 'carbon-icons-svelte/lib/ResultNew.svelte';
 
 	let loading = false;
 
@@ -56,7 +57,7 @@
 	import { doc, getDoc } from 'firebase/firestore';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
+	import { afterUpdate, beforeUpdate, onDestroy, onMount, tick } from 'svelte';
 	import UsersMenu from './UsersMenu.svelte';
 	import Problems from './Problems.svelte';
 	import Solutions from './Solutions.svelte';
@@ -128,6 +129,37 @@
 		}
 	};
 
+	const fetchLiteProfile = async (uid: string) => {
+		if (!uid) {
+			return;
+		}
+
+		let display_name = '',
+			username = '';
+
+		try {
+			const [{ value: profileSnap }, { value: userSnap }] = await Promise.allSettled([
+				await getDoc(doc(db, 'users', uid, 'public/profile')),
+				await getDoc(doc(db, 'users', uid))
+			]);
+
+			if (profileSnap.exists()) {
+				({ display_name = '' } = profileSnap.data());
+			}
+			if (userSnap.exists()) {
+				({ username = '' } = userSnap.data());
+			}
+		} catch (error) {
+			console.error(error);
+		} finally {
+			return {
+				uid,
+				display_name,
+				username
+			};
+		}
+	};
+
 	const updateAnswers = async () => {
 		savingAnswers = true;
 
@@ -181,8 +213,8 @@
 		currentTime = Date.now();
 	};
 
-
 	onMount(() => {
+		console.log(solutions);
 		updateTimer();
 
 		onValue(
@@ -211,7 +243,8 @@
 	onDestroy(() => clearTimeout(timerTimeout));
 
 	let submitted = false;
-	let solutions: any[] = [];
+	let solutions: any[];
+	let contestData: any;
 
 	onValue(
 		ref(rtdb, 'gameData/' + $room?.roomId + '/responses/' + $user?.user.uid + '/status'),
@@ -228,11 +261,23 @@
 					ref(rtdb, 'gameData/' + $room?.roomId + '/results/answers'),
 					async (snapshot) => {
 						if (!snapshot.exists()) {
+							console.error('Error Fetching Answers: No answers in database');
 							return;
 						}
 
 						solutions = snapshot.val();
-						console.log(solutions);
+					},
+					{ onlyOnce: true }
+				);
+
+				onValue(
+					ref(rtdb, 'gameSettings/' + $room?.roomId + '/contestData'),
+					async (snapshot) => {
+						if (!snapshot.exists()) {
+							return;
+						}
+
+						contestData = snapshot.val();
 					},
 					{ onlyOnce: true }
 				);
@@ -242,6 +287,55 @@
 			}
 		}
 	);
+
+	let standings: any[], endReason: any, problemsPanel: HTMLElement;
+
+	const getStandingsProfile = async (user: any) => {
+		const profile = await fetchLiteProfile(user.userId);
+
+		if (!profile) {
+			return;
+		}
+
+		const { username, display_name } = profile;
+
+		return {
+			...user,
+			username,
+			display_name
+		};
+	};
+
+	socket.on('results-compiled', () => {
+		onValue(
+			ref(rtdb, 'gameData/' + $room?.roomId + '/results'),
+			async (snapshot) => {
+				if (!snapshot.exists()) {
+					return;
+				}
+
+				({ standings, endReason } = snapshot.val());
+
+				const profiles = await Promise.allSettled(
+					standings.map((user) => {
+						return getStandingsProfile(user);
+					})
+				);
+
+				standings = profiles.map((user, i) => {
+					if (user.status != 'fulfilled') {
+						console.error('Could not fetch UID: ' + standings[i].userId);
+						return;
+					}
+
+					return user.value;
+				});
+
+				problemsPanel.scroll({ top: 0, behavior: 'smooth' });
+			},
+			{ onlyOnce: true }
+		);
+	});
 
 	const exitRoom = async () => {
 		if (loading) return;
@@ -262,6 +356,10 @@
 		}
 	};
 
+	const returnLobby = async () => {
+		$room.gameState = 'lobby';
+	};
+
 	const submitAnswers = async () => {
 		if (loading) return;
 
@@ -280,6 +378,10 @@
 		} finally {
 			loading = false;
 		}
+	};
+
+	const isCorrect = (response: string | number, solution: any) => {
+		return (Array.isArray(solution) && solution.includes(response)) || solution === response;
 	};
 
 	let mobileCollapse = false;
@@ -325,15 +427,36 @@
 										<StructuredListCell style="text-align: center;" head
 											>Response</StructuredListCell
 										>
+										{#if submitted}
+											<StructuredListCell style="text-align: center;" head
+												>Answer</StructuredListCell
+											>
+											<StructuredListCell style="text-align: center;" head>Score</StructuredListCell
+											>
+										{/if}
 									</StructuredListRow>
 								</StructuredListHead>
 								<StructuredListBody>
 									{#each problemAnswers as answer, i}
 										<StructuredListRow>
-											<StructuredListCell noWrap>Problem {i + 1}</StructuredListCell>
+											<StructuredListCell noWrap>#{i + 1}</StructuredListCell>
 											<StructuredListCell style="text-align: center;"
 												>{savedAnswers[i]?.toString().toUpperCase() || '-'}</StructuredListCell
 											>
+											{#if submitted}
+												<StructuredListCell style="text-align: center;">
+													{solutions[i]?.answer?.toString().toUpperCase()}
+												</StructuredListCell>
+												<StructuredListCell style="text-align: center;">
+													{#if savedAnswers[i] || savedAnswers[i] === 0}
+														{isCorrect(savedAnswers[i], solutions?.[i]?.answer)
+															? contestData?.[solutions?.[i]?.contest]?.correctScore
+															: 0}
+													{:else}
+														{contestData?.[solutions?.[i]?.contest]?.blankScore}
+													{/if}
+												</StructuredListCell>
+											{/if}
 										</StructuredListRow>
 									{/each}
 								</StructuredListBody>
@@ -343,12 +466,24 @@
 				</Tabs>
 			{/if}
 			<ButtonSet stacked={innerWidth >= 1280 || innerWidth < 672} style="justify-content: center;">
-				<Button on:click={exitRoom} kind="secondary" disabled={loading} icon={Exit}>
-					Exit Room
-				</Button>
-				<Button on:click={submitAnswers} icon={CaretRight} disabled={loading || submitted}
-					>Submit Answers</Button
-				>
+				{#if endReason}
+					<Button on:click={returnLobby} kind="secondary" disabled={loading} icon={Exit}>
+						Return to Lobby
+					</Button>
+					<Button
+						on:click={() => {
+							problemsPanel.scroll({ top: 0, behavior: 'smooth' });
+						}}
+						icon={ResultNew}>View Standings</Button
+					>
+				{:else}
+					<Button on:click={exitRoom} kind="secondary" disabled={loading} icon={Exit}>
+						Exit Room
+					</Button>
+					<Button on:click={submitAnswers} icon={CaretRight} disabled={loading || submitted}
+						>Submit Answers</Button
+					>
+				{/if}
 			</ButtonSet>
 		</section>
 		<div class="exam-panel">
@@ -367,19 +502,60 @@
 					/>
 				</Tile>
 			</article>
-			<section class="problem-panel">
+			<section bind:this={problemsPanel} class="problem-panel">
+				{#if endReason}
+					<section class="standings">
+						<h4 style="align-self: center;">
+							{endReason == 'end-time' ? "Time's Up" : "Everyone's Submitted!"}
+						</h4>
+						<div style="max-width: 100%; overflow-x: auto;" class="table-wrapper">
+							<StructuredList style="margin-bottom: 0;">
+								<StructuredListHead>
+									<StructuredListRow head>
+										<StructuredListCell head>Rank</StructuredListCell>
+										<StructuredListCell style="text-align: center;" head>User</StructuredListCell>
+										<StructuredListCell style="text-align: center;" head>Correct</StructuredListCell
+										>
+										<StructuredListCell style="text-align: center;" head>Blank</StructuredListCell>
+										<StructuredListCell style="text-align: center;" head
+											>Time Used</StructuredListCell
+										>
+										<StructuredListCell style="text-align: center;" head>Score</StructuredListCell>
+									</StructuredListRow>
+								</StructuredListHead>
+								<StructuredListBody>
+									{#each standings as { blank, correct, score, timeUsed, userId, username, display_name }, i}
+										<StructuredListRow>
+											<StructuredListCell noWrap>#{i + 1}</StructuredListCell>
+											<StructuredListCell style="text-align: center;"
+												><div style="display: flex; flex-direction: column;" use:truncate>
+													<span>{display_name}</span>
+													<span>@{username}</span>
+												</div></StructuredListCell
+											>
+											<StructuredListCell style="text-align: center;" noWrap
+												>{correct}</StructuredListCell
+											>
+											<StructuredListCell style="text-align: center;" noWrap
+												>{blank}</StructuredListCell
+											>
+											<StructuredListCell style="text-align: center;" noWrap
+												>{(timeUsed / 60000).toFixed(1)} mins</StructuredListCell
+											>
+											<StructuredListCell style="text-align: center;" noWrap
+												>{score}</StructuredListCell
+											>
+										</StructuredListRow>
+									{/each}
+								</StructuredListBody>
+							</StructuredList>
+						</div>
+					</section>
+				{/if}
 				{#if !submitted}
-					<Problems
-						{problems}
-						{savingAnswers}
-						{savedAnswers}
-						bind:problemAnswers
-					/>
+					<Problems {problems} {savingAnswers} {savedAnswers} bind:problemAnswers />
 				{:else}
-					<Solutions
-						{solutions}
-						{savedAnswers}
-					/>
+					<Solutions {solutions} {savedAnswers} />
 				{/if}
 			</section>
 		</div>
@@ -459,10 +635,14 @@
 			max-width: 100%;
 			overflow-y: auto;
 			padding-left: 1rem;
-		}
-	}
 
-	@media screen and (min-width: 1056px) {
+			.standings {
+				width: 100%;
+				padding: 1rem 0.5rem;
+				display: flex;
+				flex-direction: column;
+			}
+		}
 	}
 
 	@media screen and (max-width: 1279px) {
@@ -483,6 +663,14 @@
 
 			.exam-panel {
 				max-width: 100%;
+			}
+
+			.problem-panel {
+				padding-left: 0;
+
+				.standings {
+					padding: 1rem 0;
+				}
 			}
 		}
 	}
