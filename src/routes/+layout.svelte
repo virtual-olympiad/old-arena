@@ -29,7 +29,7 @@
 		if (browser) {
 			if (app.theme == 'g90') {
 				document.querySelectorAll('.latexcenter').forEach((img) => {
-					(img as HTMLElement).setAttribute('style', 'filter: invert(1);');
+					(img as HTMLElement).setAttribute('style', 'filter: invert(1) hue-rotate(180deg);');
 				});
 			} else {
 				document.querySelectorAll('.latexcenter').forEach((img) => {
