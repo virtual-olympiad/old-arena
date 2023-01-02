@@ -45,9 +45,6 @@
 	import Exit from 'carbon-icons-svelte/lib/Exit.svelte';
 	import ChevronDown from 'carbon-icons-svelte/lib/ChevronDown.svelte';
 	import ChevronUp from 'carbon-icons-svelte/lib/ChevronUp.svelte';
-	import SortAscending from 'carbon-icons-svelte/lib/SortAscending.svelte';
-	import SortDescending from 'carbon-icons-svelte/lib/SortDescending.svelte';
-	import SortRemove from 'carbon-icons-svelte/lib/SortRemove.svelte';
 
 	let loading = false;
 
@@ -61,6 +58,8 @@
 	import { browser } from '$app/environment';
 	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import UsersMenu from './UsersMenu.svelte';
+	import Problems from './Problems.svelte';
+	import Solutions from './Solutions.svelte';
 
 	let users: any[] = [];
 	let problems: any[] = [];
@@ -73,22 +72,6 @@
 	let savingAnswers = false;
 
 	$: (problemAnswers || true) && updateAnswers();
-
-	const updateKatexTheme = () => {
-		if (browser) {
-			if ($app.theme == 'g90') {
-				document.querySelectorAll('.latex, .latexcenter').forEach((img) => {
-					(img as HTMLElement).setAttribute('style', 'filter: invert(1);');
-				});
-			} else {
-				document.querySelectorAll('.latex, .latexcenter').forEach((img) => {
-					(img as HTMLElement).setAttribute('style', '');
-				});
-			}
-		}
-	};
-
-	afterUpdate(updateKatexTheme);
 
 	const downloadImage = async (uid: string) => {
 		let pfpLink = '';
@@ -189,29 +172,6 @@
 		}
 	);
 
-	const saveStatus = (i) => {
-		if ((problemAnswers[i] ?? '') == (savedAnswers[i] ?? '')) {
-			return 'finished';
-		}
-
-		if (savingAnswers) {
-			return 'active';
-		}
-
-		return 'error';
-	};
-
-	const saveDescription = (i) => {
-		switch (saveStatus(i)) {
-			case 'finished':
-				return 'Saved';
-			case 'active':
-				return 'Saving';
-			case 'error':
-				return 'Unsaved';
-		}
-	};
-
 	let currentTime = Date.now();
 
 	let timerTimeout: any;
@@ -221,7 +181,6 @@
 		currentTime = Date.now();
 	};
 
-	let sortAscending = true;
 
 	onMount(() => {
 		updateTimer();
@@ -251,6 +210,39 @@
 
 	onDestroy(() => clearTimeout(timerTimeout));
 
+	let submitted = false;
+	let solutions: any[] = [];
+
+	onValue(
+		ref(rtdb, 'gameData/' + $room?.roomId + '/responses/' + $user?.user.uid + '/status'),
+		async (snapshot) => {
+			if (!snapshot.exists()) {
+				return;
+			}
+
+			if (snapshot.val() == 'submitted') {
+				submitted = true;
+				clearTimeout(timerTimeout);
+
+				onValue(
+					ref(rtdb, 'gameData/' + $room?.roomId + '/results/answers'),
+					async (snapshot) => {
+						if (!snapshot.exists()) {
+							return;
+						}
+
+						solutions = snapshot.val();
+						console.log(solutions);
+					},
+					{ onlyOnce: true }
+				);
+			} else {
+				submitted = false;
+				solutions = [];
+			}
+		}
+	);
+
 	const exitRoom = async () => {
 		if (loading) return;
 
@@ -270,7 +262,25 @@
 		}
 	};
 
-	const submitAnswers = () => {};
+	const submitAnswers = async () => {
+		if (loading) return;
+
+		try {
+			loading = true;
+			let idToken = await auth.currentUser?.getIdToken(true);
+
+			socket.emit('submit-answer', {
+				idToken,
+				data: {
+					roomId: $room.roomId
+				}
+			});
+		} catch (error) {
+			console.error(error);
+		} finally {
+			loading = false;
+		}
+	};
 
 	let mobileCollapse = false;
 	let innerWidth: number;
@@ -295,7 +305,7 @@
 				/>
 			</div>
 			{#if innerWidth >= 1280 || !mobileCollapse}
-				<h4 class="no-select">{$room.roomInfo?.name}</h4>
+				<h4 class="no-select">{$room.roomData?.name}</h4>
 				<div class="room-invite">
 					<h6 class="no-select">Invite Code:</h6>
 					<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
@@ -336,7 +346,7 @@
 				<Button on:click={exitRoom} kind="secondary" disabled={loading} icon={Exit}>
 					Exit Room
 				</Button>
-				<Button on:click={submitAnswers} icon={CaretRight} disabled={loading || !$room.isHost}
+				<Button on:click={submitAnswers} icon={CaretRight} disabled={loading || submitted}
 					>Submit Answers</Button
 				>
 			</ButtonSet>
@@ -358,73 +368,19 @@
 				</Tile>
 			</article>
 			<section class="problem-panel">
-				{#key sortAscending}
-					{#each problems as { problem, answerType, index }, i}
-						<div class="problem no-select" id={'problem-' + i}>
-							<div style="display: flex; align-items: center;">
-								<h4 class="problem-title" use:truncate>
-									Problem {index + 1}
-								</h4>
-								{#key savingAnswers ? problemAnswers[index] : null}
-									{#key savedAnswers[index]}
-										<InlineLoading
-											status={saveStatus(index)}
-											description={saveDescription(index)}
-											style="padding: 0 1rem; width: fit-content"
-										/>
-									{/key}
-								{/key}
-								{#if i == 0}
-									<Button
-										icon={sortAscending ? SortAscending : SortDescending}
-										kind="ghost"
-										size="field"
-										on:click={() => {
-											sortAscending = !sortAscending;
-											problems.reverse();
-										}}
-										style="margin-left: auto;"
-									>
-										{sortAscending ? 'Sort: Difficulty Ascending' : 'Sort: Difficulty Descending'}
-									</Button>
-								{/if}
-							</div>
-							<div class="problem-container">
-								{@html problem}
-							</div>
-							<div class="answer-container">
-								{#if answerType == 'amc'}
-									<RadioButtonGroup
-										legendText="Multiple Choice"
-										bind:selected={problemAnswers[index]}
-									>
-										<RadioButton value="">
-											<span slot="labelText" style="font-size: 16px; font-weight: 400;"> - </span>
-										</RadioButton>
-										{#each ['a', 'b', 'c', 'd', 'e'] as choice, j}
-											<RadioButton value={choice}>
-												<span slot="labelText" style="font-size: 16px; font-weight: 400;">
-													{choice.toUpperCase()}
-												</span>
-											</RadioButton>
-										{/each}
-									</RadioButtonGroup>
-								{:else if answerType == 'aime'}
-									<NumberInput
-										allowEmpty
-										hideSteppers
-										light
-										size="sm"
-										label="Integer Answer"
-										min={0}
-										max={999}
-										bind:value={problemAnswers[index]}
-									/>
-								{/if}
-							</div>
-						</div>
-					{/each}
-				{/key}
+				{#if !submitted}
+					<Problems
+						{problems}
+						{savingAnswers}
+						{savedAnswers}
+						bind:problemAnswers
+					/>
+				{:else}
+					<Solutions
+						{solutions}
+						{savedAnswers}
+					/>
+				{/if}
 			</section>
 		</div>
 	</Tile>
@@ -503,29 +459,6 @@
 			max-width: 100%;
 			overflow-y: auto;
 			padding-left: 1rem;
-
-			.problem {
-				width: 100%;
-				padding: 1rem 0.5rem;
-				display: flex;
-				flex-direction: column;
-				border-bottom: 1px dotted #999;
-
-				.problem-title {
-					font-weight: 500;
-				}
-
-				.problem-container {
-					height: 100%;
-					overflow-x: auto;
-					padding: 1rem 0;
-					margin: 0 0 0.5rem 0;
-				}
-
-				.answer-container {
-					overflow-x: auto;
-				}
-			}
 		}
 	}
 
