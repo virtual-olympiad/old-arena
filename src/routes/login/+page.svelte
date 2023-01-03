@@ -30,11 +30,6 @@
 
 	onMount(async () => {
 		subtitleDetail = subtitleDetails[Math.floor(subtitleDetails.length * Math.random())];
-		user.subscribe(async (user) => {
-			if (user.user) {
-				await goto('/');
-			}
-		});
 	});
 
 	import { browser } from '$app/environment';
@@ -53,6 +48,8 @@
 				throw new Error('You must enter your password.');
 			}
 			await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+
+			goto('/');
 		} catch ({ code, message }) {
 			console.error(`Error ${code}: ${message}`);
 		} finally {

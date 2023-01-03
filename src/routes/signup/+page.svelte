@@ -8,39 +8,40 @@
 		DatePicker,
 		DatePickerInput,
 		TooltipDefinition,
-		Link
+		Link,
+		Modal
 	} from 'carbon-components-svelte';
 
 	import Login from 'carbon-icons-svelte/lib/Login.svelte';
+	import EmailNew from 'carbon-icons-svelte/lib/EmailNew.svelte';
+	import UserAdmin from 'carbon-icons-svelte/lib/UserAdmin.svelte';
 
 	import { auth } from '$lib/firebase';
-	import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth';
+	import {
+		createUserWithEmailAndPassword,
+		sendEmailVerification,
+		updateProfile
+	} from 'firebase/auth';
 	import { user } from '$lib/sessionStore';
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-
-	onMount(() => {
-		user.subscribe(async (user) => {
-			if (user.user) {
-				await goto('/');
-			}
-		});
-	});
 
 	let signupEmail = '',
 		signupPassword = '',
 		invalidCredentials = '',
-		loading = false;
+		loading = false,
+		signupSuccess = false;
 
 	const handleSignup = async () => {
 		try {
 			loading = true;
 
-			const { user } = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword).catch(error => {throw error;});
-			await sendEmailVerification(user).catch(error => {throw error;});
-			
+			const { user } = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
+			await sendEmailVerification(user);
+
+			signupSuccess = true;
 			invalidCredentials = '';
 		} catch (error) {
+			signupSuccess = false;
 			invalidCredentials = error?.message;
 			console.error(error);
 		} finally {
@@ -50,6 +51,41 @@
 </script>
 
 <section class="signup-panel">
+	<Modal
+		preventCloseOnClickOutside
+		open={signupSuccess}
+		modalHeading="Account Creation Success!"
+		primaryButtonText="Update your Profile"
+		secondaryButtonText="Back to Home"
+		on:click:button--secondary={async () => {
+			await goto('/');
+		}}
+		on:click:button--primary={async () => {
+			await goto('/settings');
+		}}
+		on:open
+		on:close
+		on:submit
+	>
+		<h5 style="display: flex; align-items: center;">
+			<UserAdmin size={24} style="margin-right: .5rem;" /> Update Your Profile
+		</h5>
+		<p>
+			You'll now be able to access the main features of VOLY and create or join rooms.
+			<br />
+			You can also customize your username and other profile details in Settings.
+		</p>
+		<br />
+		<h5 style="display: flex; align-items: center;">
+			<EmailNew size={24} style="margin-right: .5rem;" /> Verify Your Email
+		</h5>
+		<p><strong>We've sent an email to {signupEmail} from noreply@mathetal.org</strong></p>
+		<p>
+			Click on the given link to verify your email. We will never ask you for your credentials.
+			<br />
+			<em>Make sure to check your spam/junk folder </em>
+		</p>
+	</Modal>
 	<Tile>
 		<h1 class="signup-title" style="user-select: none;">Signup</h1>
 		<h6 class="signup-subtitle" style="user-select: none;">Join the fun!</h6>
