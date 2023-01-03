@@ -28,22 +28,43 @@
 	let signupEmail = '',
 		signupPassword = '',
 		invalidCredentials = '',
+		invalidField = '',
 		loading = false,
 		signupSuccess = false;
 
 	const handleSignup = async () => {
 		try {
+			signupSuccess = false;
+			invalidCredentials = '';
 			loading = true;
 
 			const { user } = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
 			await sendEmailVerification(user);
 
 			signupSuccess = true;
-			invalidCredentials = '';
-		} catch (error) {
-			signupSuccess = false;
-			invalidCredentials = error?.message;
-			console.error(error);
+		} catch ({ code, message }) {
+			switch (code) {
+				case 'auth/invalid-email':
+					invalidField = 'email';
+					invalidCredentials = 'Invalid Email';
+					break;
+				case 'auth/email-already-in-use':
+					invalidField = 'email';
+					invalidCredentials = 'This email is already registered. Please log in instead.';
+					break;
+				case 'auth/too-many-requests':
+					invalidField = 'email';
+					invalidCredentials = 'Too many attempts. Please try again later.';
+					break;
+				case 'auth/weak-password':
+					invalidField = 'password';
+					invalidCredentials = 'Password too weak. It should be at least 6 characters.';
+					break;
+				default:
+					invalidField = 'password';
+					invalidCredentials = 'Something went wrong';
+			}
+			console.error(`Error ${code}: ${message}`);
 		} finally {
 			loading = false;
 		}
@@ -64,7 +85,9 @@
 			await goto('/settings');
 		}}
 		on:open
-		on:close
+		on:close={() => {
+			goto('/');
+		}}
 		on:submit
 	>
 		<h5 style="display: flex; align-items: center;">
@@ -97,6 +120,8 @@
 				labelText="Email"
 				placeholder="Enter email..."
 				required
+				invalidText={invalidCredentials}
+				invalid={!!invalidCredentials && invalidField == 'email'}
 			/>
 			<PasswordInput
 				bind:value={signupPassword}
@@ -106,7 +131,7 @@
 				labelText="Password"
 				placeholder="Enter password..."
 				invalidText={invalidCredentials}
-				invalid={!!invalidCredentials}
+				invalid={!!invalidCredentials && invalidField == 'password'}
 			/>
 		</FluidForm>
 		<div style="margin-top: 1rem; user-select: none;">
