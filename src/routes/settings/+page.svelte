@@ -11,7 +11,6 @@
 
 	if (browser) {
 		user.subscribe(async (user) => {
-			console.log(user.user);
 			if (!user.user) {
 				await goto('/login');
 			}

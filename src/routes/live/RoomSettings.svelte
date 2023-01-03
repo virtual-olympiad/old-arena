@@ -19,41 +19,25 @@
 	} from 'carbon-components-svelte';
 
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
-	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 
-	let name = '',
-		description = '',
-		roomPublic = true,
-		maxUsers = 8;
-
-	$: (name || true) && updateRoom();
-	$: (description || true) && updateRoom();
-	$: (roomPublic || true) && updateRoom();
-	$: (maxUsers || true) && updateRoom();
-
-	let debounceTimer: any;
+	$: ($room.roomData || true) && updateRoom();
 
 	import { room } from '$lib/sessionStore';
-	import { auth, rtdb } from '$lib/firebase';
-	import { onValue, ref, remove, set, update } from 'firebase/database';
-	import { goto } from '$app/navigation';
-	import { browser } from '$app/environment';
+	import { rtdb } from '$lib/firebase';
+	import { ref, update } from 'firebase/database';
 
-	onValue(ref(rtdb, 'rooms/' + $room?.roomId), async (snapshot) => {
-		if (!snapshot.exists()) {
-			if (browser) {
-				goto('/');
-			}
-			return;
-		}
-
-		({ name, description, roomPublic } = snapshot.val());
-	});
+	let debounceTimer: any;
 
 	const updateRoom = () => {
 		clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(async () => {
 			try {
+				if (!$room.roomData){
+					return;
+				}
+
+				const { name, description, roomPublic, maxUsers } = $room.roomData;
+
 				let updatePromise = [
 					update(ref(rtdb, 'rooms/' + $room.roomId), {
 						name,
@@ -74,7 +58,7 @@
 <section class="room-panel">
 	<Form>
 		<FormGroup disabled={!$room.isHost} legendText="Room Name">
-			<TextInput light bind:value={name} placeholder="Enter room name..." />
+			<TextInput light bind:value={$room.roomData.name} placeholder="Enter room name..." />
 		</FormGroup>
 		<FormGroup disabled={!$room.isHost}>
 			<TextArea
@@ -82,7 +66,7 @@
 				placeholder="Enter room description..."
 				maxCount={100}
 				style="max-height: 150px;"
-				bind:value={description}
+				bind:value={$room.roomData.description}
 			>
 				<span slot="labelText" style="display: flex; align-items: center;">
 					<span>Room Description</span>
@@ -99,10 +83,10 @@
 			</TextArea>
 		</FormGroup>
 		<FormGroup disabled={!$room.isHost} legendText="Room Size (Player Limit)">
-			<Slider disabled={!$room.isHost} fullWidth light min={$room.roomData?.users ? Object.keys($room.roomData?.users).length: 1} max={8} bind:value={maxUsers} />
+			<Slider disabled={!$room.isHost} fullWidth light min={$room.roomData?.users ? Object.keys($room.roomData?.users).length: 1} max={8} bind:value={$room.roomData.maxUsers} />
 		</FormGroup>
 		<FormGroup disabled={!$room.isHost} legendText="Room Visibility">
-			<Toggle bind:toggled={roomPublic}>
+			<Toggle bind:toggled={$room.roomData.roomPublic}>
 				<span slot="labelA" style="display: flex; align-items: center;">
 					Private
 					<TooltipIcon

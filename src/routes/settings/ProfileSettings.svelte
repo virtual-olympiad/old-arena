@@ -26,7 +26,7 @@
 
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
-	import { db } from '$lib/firebase';
+	import { db, fetchProfile } from '$lib/firebase';
 	import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 
 	import Avatar from './Avatar.svelte';
@@ -39,26 +39,16 @@
 		invalidSettings = '',
 		saveSuccess = false;
 
-	const fetchProfile = async () => {
-		try {
-			loading = true;
-			const profileSnap = await getDoc(doc(db, 'users', $user.user.uid, 'public/profile'));
-			if (profileSnap.exists()) {
-				({ display_name = '', bio = '', website = '' } = profileSnap.data());
-			}
-
-			const userSnap = await getDoc(doc(db, 'users', $user.user.uid));
-			if (userSnap.exists()) {
-				({ username = '' } = userSnap.data());
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			loading = false;
+	const getProfile = async () => {
+		const profile = await fetchProfile($user.user.uid, false);
+		if (!profile) {
+			return;
 		}
+
+		({ username, display_name, bio, website } = profile);
 	};
 
-	onMount(fetchProfile);
+	onMount(getProfile);
 
 	const updateProfile = async () => {
 		try {
@@ -82,7 +72,7 @@
 			console.error(error);
 		} finally {
 			loading = false;
-			fetchProfile();
+			getProfile();
 		}
 	};
 </script>

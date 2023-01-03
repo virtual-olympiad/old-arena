@@ -50,19 +50,16 @@
 	let loading = false;
 
 	import { socket } from '$lib/socket.js';
-	import { auth, db, rtdb, storage } from '$lib/firebase';
+	import { auth, db, fetchProfile, rtdb, storage } from '$lib/firebase';
 	import { app, user, room } from '$lib/sessionStore';
 	import { onValue, ref, update } from 'firebase/database';
-	import { getDownloadURL, ref as storageRef } from 'firebase/storage';
-	import { doc, getDoc } from 'firebase/firestore';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
-	import { afterUpdate, beforeUpdate, onDestroy, onMount, tick } from 'svelte';
+	import { afterUpdate, beforeUpdate, onDestroy, onMount } from 'svelte';
 	import UsersMenu from './UsersMenu.svelte';
 	import Problems from './Problems.svelte';
 	import Solutions from './Solutions.svelte';
 
-	let users: any[] = [];
 	let problems: any[] = [];
 
 	let timeLimit = 0;
@@ -73,92 +70,6 @@
 	let savingAnswers = false;
 
 	$: (problemAnswers || true) && updateAnswers();
-
-	const downloadImage = async (uid: string) => {
-		let pfpLink = '';
-		try {
-			pfpLink = await getDownloadURL(storageRef(storage, `pfp/${uid}/pfp`));
-		} catch (error) {
-			console.error(error);
-			pfpLink = '';
-		}
-
-		return pfpLink;
-	};
-
-	const fetchProfile = async (socketId: string, uid: string) => {
-		if (!uid) {
-			return;
-		}
-
-		let display_name = '',
-			username = '',
-			badges = [],
-			pfp = '';
-
-		try {
-			pfp = await downloadImage(uid);
-
-			const [{ value: profileSnap }, { value: userSnap }, { value: achievementSnap }] =
-				await Promise.allSettled([
-					await getDoc(doc(db, 'users', uid, 'public/profile')),
-					await getDoc(doc(db, 'users', uid)),
-					await getDoc(doc(db, 'users', uid, 'public/achievements'))
-				]);
-
-			if (profileSnap.exists()) {
-				({ display_name = '' } = profileSnap.data());
-			}
-			if (userSnap.exists()) {
-				({ username = '' } = userSnap.data());
-			}
-			if (achievementSnap.exists()) {
-				({ badges = [] } = userSnap.data());
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			return {
-				socketId,
-				uid,
-				pfp,
-				display_name,
-				username,
-				badges
-			};
-		}
-	};
-
-	const fetchLiteProfile = async (uid: string) => {
-		if (!uid) {
-			return;
-		}
-
-		let display_name = '',
-			username = '';
-
-		try {
-			const [{ value: profileSnap }, { value: userSnap }] = await Promise.allSettled([
-				await getDoc(doc(db, 'users', uid, 'public/profile')),
-				await getDoc(doc(db, 'users', uid))
-			]);
-
-			if (profileSnap.exists()) {
-				({ display_name = '' } = profileSnap.data());
-			}
-			if (userSnap.exists()) {
-				({ username = '' } = userSnap.data());
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			return {
-				uid,
-				display_name,
-				username
-			};
-		}
-	};
 
 	const updateAnswers = async () => {
 		savingAnswers = true;
@@ -174,26 +85,7 @@
 		}
 	};
 
-	onValue(ref(rtdb, 'rooms/' + $room?.roomId + '/users'), async (snapshot) => {
-		if (!snapshot.exists()) {
-			users = [];
-			return;
-		}
-
-		try {
-			users = (
-				await Promise.allSettled(
-					Object.entries(snapshot.val()).map(([socketId, user]) => {
-						return fetchProfile(socketId, user.userId);
-					})
-				)
-			).map((user) => user.value);
-		} catch (error) {
-			console.error(error);
-		}
-	});
-
-	onValue(
+	const answersListener = onValue(
 		ref(rtdb, 'gameData/' + $room?.roomId + '/responses/' + $user.user.uid + '/answers'),
 		async (snapshot) => {
 			if (!snapshot.exists()) {
@@ -240,58 +132,51 @@
 		);
 	});
 
-	onDestroy(() => clearTimeout(timerTimeout));
+	onDestroy(() => {
+		clearTimeout(timerTimeout);
+		answersListener();
+	});
 
 	let submitted = false;
 	let solutions: any[];
 	let contestData: any;
 
-	onValue(
-		ref(rtdb, 'gameData/' + $room?.roomId + '/responses/' + $user?.user.uid + '/status'),
-		async (snapshot) => {
-			if (!snapshot.exists()) {
-				return;
-			}
+	const updateSubmission = () => {
+		submitted = true;
+		clearTimeout(timerTimeout);
 
-			if (snapshot.val() == 'submitted') {
-				submitted = true;
-				clearTimeout(timerTimeout);
+		onValue(
+			ref(rtdb, 'gameData/' + $room?.roomId + '/results/answers'),
+			async (snapshot) => {
+				if (!snapshot.exists()) {
+					console.error('Error Fetching Answers: No answers in database');
+					return;
+				}
 
-				onValue(
-					ref(rtdb, 'gameData/' + $room?.roomId + '/results/answers'),
-					async (snapshot) => {
-						if (!snapshot.exists()) {
-							console.error('Error Fetching Answers: No answers in database');
-							return;
-						}
+				solutions = snapshot.val();
+			},
+			{ onlyOnce: true }
+		);
 
-						solutions = snapshot.val();
-					},
-					{ onlyOnce: true }
-				);
+		onValue(
+			ref(rtdb, 'gameSettings/' + $room?.roomId + '/contestData'),
+			async (snapshot) => {
+				if (!snapshot.exists()) {
+					return;
+				}
 
-				onValue(
-					ref(rtdb, 'gameSettings/' + $room?.roomId + '/contestData'),
-					async (snapshot) => {
-						if (!snapshot.exists()) {
-							return;
-						}
+				contestData = snapshot.val();
+			},
+			{ onlyOnce: true }
+		);
+	};
 
-						contestData = snapshot.val();
-					},
-					{ onlyOnce: true }
-				);
-			} else {
-				submitted = false;
-				solutions = [];
-			}
-		}
-	);
+	socket.on('submit-answer-success', updateSubmission);
 
 	let standings: any[], endReason: any, problemsPanel: HTMLElement;
 
 	const getStandingsProfile = async (user: any) => {
-		const profile = await fetchLiteProfile(user.userId);
+		const profile = await fetchProfile(user.userId, false);
 
 		if (!profile) {
 			return;
@@ -417,7 +302,7 @@
 					<Tab label="Submission" />
 					<svelte:fragment slot="content">
 						<TabContent style="overflow: auto; width: 100%; height: 100%; margin-bottom: 1rem;">
-							<UsersMenu {users} />
+							<UsersMenu />
 						</TabContent>
 						<TabContent style="overflow: auto; width: 100%; height: 100%; margin-bottom: 1rem;">
 							<StructuredList condensed>

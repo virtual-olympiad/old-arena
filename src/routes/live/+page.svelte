@@ -7,8 +7,9 @@
 	import { browser } from '$app/environment';
     import Game from './Game.svelte';
 	import Lobby from './Lobby.svelte';
+	import { onDestroy } from 'svelte';
 
-	onValue(ref(rtdb, 'rooms/' + $room?.roomId), async (snapshot) => {
+	const roomListener = onValue(ref(rtdb, 'rooms/' + $room?.roomId), async (snapshot) => {
 		if (!snapshot.exists()) {
 			if (browser) {
 				goto('/');
@@ -16,7 +17,7 @@
 
             room.set({
 				...$room,
-				roomData: null
+				roomData: {}
 			});
 			return;
 		}
@@ -27,6 +28,8 @@
 			roomData: snapshot.val()
 		});
 	});
+
+	onDestroy(roomListener);
 </script>
 
 {#if $room.gameState === 'game'}

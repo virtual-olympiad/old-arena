@@ -113,8 +113,9 @@
 	import { onValue, ref, remove, set, update } from 'firebase/database';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import { onDestroy } from 'svelte';
 
-	onValue(ref(rtdb, 'gameSettings/' + $room?.roomId), async (snapshot) => {
+	const gameSettingsListener = onValue(ref(rtdb, 'gameSettings/' + $room?.roomId), async (snapshot) => {
 		if (!snapshot.exists()) {
 			if (browser) {
 				goto('/');
@@ -125,6 +126,7 @@
 		({ contestSelection, contestData } = snapshot.val());
 	});
 
+	onDestroy(gameSettingsListener);
 
 	const updateRoom = () => {
 		clearTimeout(debounceTimer);

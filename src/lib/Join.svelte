@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { RoomAbstract } from 'src/app';
 	import { socket } from '$lib/socket';
-	import { onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 
 	import {
 		DataTable,
@@ -50,7 +50,7 @@
 		}
 	};
 	
-	onValue(query(ref(rtdb, 'rooms'), orderByChild('roomPublic'), equalTo(true)), async (snapshot) => {		
+	const publicRoomsListener = onValue(query(ref(rtdb, 'rooms'), orderByChild('roomPublic'), equalTo(true)), async (snapshot) => {		
 		rooms = [];
 		if (!snapshot.exists()) {
 			return;
@@ -71,6 +71,8 @@
 		});
 	});
 
+	onDestroy(publicRoomsListener);
+
 	let pageSize = 5;
 	let page = 1;
 
@@ -82,7 +84,7 @@
 		loadingJoin = true;
 
 		if (code == $room.roomId){
-			goto('/live');
+			await goto('/live');
 			loadingJoin = false;
 			return;
 		}

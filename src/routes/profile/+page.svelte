@@ -28,11 +28,9 @@
 	import Information from 'carbon-icons-svelte/lib/Information.svelte';
 	import AddFilled from 'carbon-icons-svelte/lib/AddFilled.svelte';
 
-	import { db, storage } from '$lib/firebase';
-	import { doc, getDoc } from 'firebase/firestore';
+	import { db, fetchProfile, storage } from '$lib/firebase';
 	import { user } from '$lib/sessionStore';
 	import { onMount } from 'svelte';
-	import { getDownloadURL, ref } from 'firebase/storage';
 
 	interface ProfileBadge {
 		name: string;
@@ -42,59 +40,26 @@
 		description: string;
 	}
 
-	let loading = false,
-		username = '',
+	let username = '',
 		display_name = '',
 		bio = '',
 		website = '',
-		avatar_url = '',
 		badges: ProfileBadge[] = [],
-		pfpSrc = '';
+		pfp = '';
 
-	const downloadImage = async (node: any) => {
-		pfpSrc = await getDownloadURL(ref(storage, `pfp/${$user.user.uid}/pfp`));
-	};
-
-	const fetchProfile = async () => {
-		try {
-			loading = true;
-
-			await downloadImage(null);
-
-			const [{ value: profileSnap }, { value: userSnap }, { value: achievementSnap }] = await Promise.allSettled(
-				[
-					await getDoc(doc(db, 'users', $user.user.uid, 'public/profile')),
-					await getDoc(doc(db, 'users', $user.user.uid)),
-					await getDoc(doc(db, 'users', $user.user.uid, 'public/achievements'))
-				]
-			);
-
-			if (profileSnap.exists()) {
-				({ display_name = '', bio = '', website = '' } = profileSnap.data());
-			}
-			if (userSnap.exists()) {
-				({ username = '' } = userSnap.data());
-			}
-			if (achievementSnap.exists()){
-				({ badges = [] } = userSnap.data());
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			loading = false;
+	onMount(async ()=> {
+		const profile = await fetchProfile($user.user.uid, true);
+		if (profile){
+			({ username, display_name, badges, pfp, bio, website } = profile);
 		}
-	};
-
-	onMount(()=> {
-		fetchProfile();
 	});
 </script>
 
 <section class="profile-panel">
 	<Tile style="height: 100%;">
 		<div class="profile-user">
-			{#if pfpSrc}
-				<img src={pfpSrc} alt="Avatar" class="profile-avatar" />
+			{#if pfp}
+				<img src={pfp} alt="Avatar" class="profile-avatar" />
 			{/if}
 			<h1 class="profile-display-name">{display_name || username}</h1>
 			<span class="profile-username">{username ? '@' + username:''}</span>

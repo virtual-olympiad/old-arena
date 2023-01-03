@@ -3,17 +3,13 @@
 	import { user } from '$lib/sessionStore';
 	import { FileUploader, ImageLoader, InlineNotification } from 'carbon-components-svelte';
 	import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
-	import { storage } from '$lib/firebase';
+	import { downloadImage, storage } from '$lib/firebase';
 
 	let uploading = false;
 	let updated = false;
 	let src: string = '';
 	let toast = '';
 	let pfp: any[];
-
-	const downloadImage = async (node: any) => {
-		src = await getDownloadURL(ref(storage, `pfp/${$user.user.uid}/pfp`));
-	};
 
 	const uploadAvatar = async () => {
 		try {
@@ -46,9 +42,11 @@
 		}
 	};
 
-	onMount(() => {
-		downloadImage(null);
-	});
+	const getPfp = async () => {
+		src = await downloadImage($user.user.uid);
+	};
+
+	onMount(getPfp);
 </script>
 
 {#key toast}
@@ -79,7 +77,7 @@
 
 	{#key updated}
 		{#if src}
-			<img use:downloadImage {src} alt="Avatar" class="avatar" />
+			<img use:getPfp {src} alt="Avatar" class="avatar" />
 		{/if}
 	{/key}
 </div>

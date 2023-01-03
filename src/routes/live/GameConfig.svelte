@@ -54,20 +54,7 @@
 
 	import { room } from '$lib/sessionStore';
 	import { auth, rtdb } from '$lib/firebase';
-	import { onValue, ref, remove, set, update } from 'firebase/database';
-	import { goto } from '$app/navigation';
-	import { browser } from '$app/environment';
-
-	onValue(ref(rtdb, 'rooms/' + $room?.roomId), async (snapshot) => {
-		if (!snapshot.exists()) {
-			if (browser) {
-				goto('/');
-			}
-			return;
-		}
-
-		({ mode, teamsEnabled, timeLimit } = snapshot.val());
-	});
+	import {ref, remove, set, update } from 'firebase/database';
 
 	const updateRoom = () => {
 		clearTimeout(debounceTimer);

@@ -36,93 +36,13 @@
 	let loading = false;
 
 	import { socket } from '$lib/socket.js';
-	import { auth, db, rtdb, storage } from '$lib/firebase';
+	import { auth, rtdb } from '$lib/firebase';
 	import { user, room } from '$lib/sessionStore';
 	import RoomSettings from './RoomSettings.svelte';
 	import GameConfig from './GameConfig.svelte';
 	import ProblemGeneration from './ProblemGeneration.svelte';
-	import { onValue, ref } from 'firebase/database';
-	import { getDownloadURL, ref as storageRef } from 'firebase/storage';
-	import { doc, getDoc } from 'firebase/firestore';
 	import { goto } from '$app/navigation';
-	import { browser } from '$app/environment';
 	import UsersMenu from './UsersMenu.svelte';
-
-	let users: any = [];
-
-	const downloadImage = async (uid: string) => {
-		let pfpLink = '';
-		try {
-			pfpLink = await getDownloadURL(storageRef(storage, `pfp/${uid}/pfp`));
-		} catch (error) {
-			console.error(error);
-			pfpLink = '';
-		}
-
-		return pfpLink;
-	};
-
-	const fetchProfile = async (socketId: string, uid: string) => {
-		if (!uid) {
-			return;
-		}
-
-		let display_name = '',
-			username = '',
-			badges = [],
-			pfp = '';
-
-		try {
-			pfp = await downloadImage(uid);
-
-			const [{ value: profileSnap }, { value: userSnap }, { value: achievementSnap }] =
-				await Promise.allSettled([
-					await getDoc(doc(db, 'users', uid, 'public/profile')),
-					await getDoc(doc(db, 'users', uid)),
-					await getDoc(doc(db, 'users', uid, 'public/achievements'))
-				]);
-
-			if (profileSnap.exists()) {
-				({ display_name = '' } = profileSnap.data());
-			}
-			if (userSnap.exists()) {
-				({ username = '' } = userSnap.data());
-			}
-			if (achievementSnap.exists()) {
-				({ badges = [] } = userSnap.data());
-			}
-		} catch (error) {
-			console.error(error);
-		} finally {
-			return {
-				socketId,
-				uid,
-				pfp,
-				display_name,
-				username,
-				badges
-			};
-		}
-	};
-
-	onValue(ref(rtdb, 'rooms/' + $room?.roomId + '/users'), async (snapshot) => {
-		if (!snapshot.exists()) {
-			users = [];
-			return;
-		}
-
-		try {
-			users = (
-				await Promise.allSettled(
-					Object.entries(snapshot.val()).map(([socketId, user]) => {
-						return fetchProfile(socketId, user.userId);
-					})
-				)
-			).map((user) => user.value);
-		} catch (error) {
-			console.error(error);
-		}
-	});
 
 	const exitRoom = async () => {
 		if (loading) return;
@@ -191,7 +111,7 @@
 					<h6>Invite Code:</h6>
 					<CodeSnippet light code={$room.roomId} feedbackTimeout={1000} />
 				</div>
-				<UsersMenu {users} />
+				<UsersMenu />
 				<ButtonSet stacked={innerWidth <= 671} style="justify-content: center; margin-top: .5rem;">
 					<Button on:click={exitRoom} kind="secondary" icon={Exit} disabled={loading}>Exit Room</Button>
 					<Button on:click={startGame} icon={CaretRight} disabled={loading || !$room.isHost}>Start Game</Button>

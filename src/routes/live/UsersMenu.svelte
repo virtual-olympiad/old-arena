@@ -3,8 +3,46 @@
 	import { room } from '$lib/sessionStore';
 	import { Link, Tag, Tile, truncate } from 'carbon-components-svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
+	import { onDestroy } from 'svelte';
+	import { onValue, ref } from 'firebase/database';
+	import { fetchProfile, rtdb } from '$lib/firebase';
 
-	export let users: any;
+	let users: any = [];
+
+	const getUser = async (socketId: string, userId: string) => {
+		return {
+			...await fetchProfile(userId, true),
+			socketId
+		};
+	};
+
+	const usersSubscription = onValue(
+		ref(rtdb, 'rooms/' + $room?.roomId + '/users'),
+		async (snapshot) => {
+			if (!snapshot.exists()) {
+				users = [];
+				return;
+			}
+
+			try {
+				const usersSnap = await Promise.allSettled(
+					Object.entries(snapshot.val()).map(([socketId, { userId }]) => getUser(socketId, userId))
+				);
+
+				users = usersSnap.flatMap((user) => {
+					if (user.status != 'fulfilled') {
+						return [];
+					}
+
+					return [user.value];
+				});
+			} catch (error) {
+				console.error(error);
+			}
+		}
+	);
+
+	onDestroy(usersSubscription);
 </script>
 
 <section class="users-menu no-select">

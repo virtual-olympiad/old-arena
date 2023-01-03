@@ -22,6 +22,7 @@ export const user: Writable<any> = writable({
 
 export const room: Writable<any> = writable({
     roomId: '',
+    roomData: {},
     isHost: false,
     gameState: 'none',
     problems: []
