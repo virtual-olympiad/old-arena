@@ -13,6 +13,7 @@
 	import { socket } from '$lib/socket';
 	import { goto } from '$app/navigation';
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { fade, fly } from 'svelte/transition';
 
 	let authConnected = false;
@@ -90,7 +91,7 @@
 		room.set({
 			...$room,
 			roomId,
-			gameState: gameState == 'game' ? 'game':'lobby'
+			gameState: gameState == 'game' ? 'game' : 'lobby'
 		});
 
 		goto('/live');
@@ -121,17 +122,23 @@
 	});
 
 	socket.on('connect', () => {
-		pushNotification(
-			'info',
-			'You have connected to the server',
-			'',
-			new Date().toLocaleString(),
-			false,
-			0
-		);
+		if (['/', '/live'].includes($page.url.pathname)) {
+			pushNotification(
+				'info',
+				'You have connected to the server',
+				'',
+				new Date().toLocaleString(),
+				false,
+				3000
+			);
+		}
 	});
 
 	socket.on('disconnect', (reason) => {
+		if (!['/', '/live'].includes($page.url.pathname)) {
+			return;
+		}
+
 		let uiTitle = '';
 		let uiReason = '';
 		switch (reason) {
@@ -159,7 +166,7 @@
 		pushNotification('error', uiTitle, uiReason, new Date().toLocaleString(), false, 0);
 	});
 
-	socket.on("create-room-error", ({ error, message }) => {
+	socket.on('create-room-error', ({ error, message }) => {
 		pushNotification(
 			'error',
 			'Error creating room',
@@ -170,7 +177,7 @@
 		);
 	});
 
-	socket.on("join-room-error", ({ error, message }) => {
+	socket.on('join-room-error', ({ error, message }) => {
 		pushNotification(
 			'error',
 			'Error joining room',
@@ -181,7 +188,7 @@
 		);
 	});
 
-	socket.on("start-game-error", ({ error, message }) => {
+	socket.on('start-game-error', ({ error, message }) => {
 		pushNotification(
 			'error',
 			'Error starting game',

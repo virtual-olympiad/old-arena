@@ -39,6 +39,7 @@
 	import { signOut } from 'firebase/auth';
 	import { socket } from '$lib/socket';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	let isOpen1 = false;
 	let isOpen2 = false;
@@ -50,6 +51,7 @@
 	const handleLogout = async () => {
 		try {
 			await signOut(auth);
+			goto('/login');
 		} catch (error) {
 			console.error(error);
 		}
@@ -60,12 +62,14 @@
 	user.subscribe(async (user) => {
 		try {
 			if (!user.user) {
+				display_name = '';
 				return;
 			}
 
 			const docSnap = await getDoc(doc(db, 'users', user.user?.uid, 'public/profile'));
 
 			if (!docSnap.exists()) {
+				display_name = '';
 				throw new Error('User document does not exist');
 			}
 
