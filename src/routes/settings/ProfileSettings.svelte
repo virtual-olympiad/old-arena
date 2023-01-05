@@ -79,18 +79,18 @@
 
 <section class="settings-panel">
 	<Tile light style="overflow: auto; height: 100%;">
-		{#key saveSuccess}
-			{#if saveSuccess}
-				<InlineNotification
-					lowContrast
-					kind="success"
-					title="Successfully Saved Profile Changes"
-					timeout={5000}
-					style="flex-shrink: 0; align-items: center;"
-				/>
-			{/if}
-		{/key}
 		<Form>
+			{#key saveSuccess}
+				{#if saveSuccess}
+					<InlineNotification
+						lowContrast
+						kind="success"
+						title="Successfully Saved Profile Changes"
+						timeout={3000}
+						style="flex-shrink: 0; align-items: center; margin-top: 0;"
+					/>
+				{/if}
+			{/key}
 			<FormGroup>
 				<Avatar />
 			</FormGroup>

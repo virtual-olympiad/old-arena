@@ -31,6 +31,7 @@
 
 			updated = !updated;
 			toast = 'success';
+			getPfp();
 			// dispatch('upload');
 		} catch (error) {
 			toast = error.message as string;
@@ -56,8 +57,8 @@
 			kind={toast == 'success' ? 'success' : 'error'}
 			title={toast == 'success' ? 'Upload Success' : 'Upload Error'}
 			subtitle={toast == 'success' ? "":toast}
-			timeout={10000}
-			style="flex-shrink: 0; align-items: center;"
+			timeout={3000}
+			style="flex-shrink: 0; align-items: center; margin-top: 0;"
 		/>
 	{/if}
 {/key}
@@ -77,7 +78,7 @@
 
 	{#key updated}
 		{#if src}
-			<img use:getPfp {src} alt="Avatar" class="avatar" />
+			<img {src} alt="Avatar" class="avatar" />
 		{/if}
 	{/key}
 </div>

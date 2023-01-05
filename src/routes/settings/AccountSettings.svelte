@@ -34,28 +34,31 @@
 
 	let loading = false,
 		email = '',
-		password:string,
-		birthday:any = '',
+		password: string,
+		birthday: any = '',
 		invalidSettings = '',
 		saveSuccess = false;
 
 	onMount(async () => {
-        email = $user.user?.email;
+		email = $user.user?.email;
 
-		const docSnap = await getDoc(doc(db, "users", $user.user.uid, "private/info"));
-		if (docSnap.exists()){
+		const docSnap = await getDoc(doc(db, 'users', $user.user.uid, 'private/info'));
+		if (docSnap.exists()) {
 			({ birthday } = docSnap.data());
 			birthday = birthday.toDate();
 		}
 
-		birthday = [birthday.getUTCMonth() + 1, birthday.getUTCDate(), birthday.getUTCFullYear()].join('/');
+		birthday = [birthday.getUTCMonth() + 1, birthday.getUTCDate(), birthday.getUTCFullYear()].join(
+			'/'
+		);
 	});
 
 	const updateAccount = async () => {
+		if (loading) {
+			return;
+		}
 		try {
-			if (loading) {
-				return;
-			}
+			invalidSettings = '';
 			saveSuccess = false;
 			loading = true;
 
@@ -63,25 +66,35 @@
 				return parseInt(x);
 			});
 
-            const parsedBirthday = new Date(Date.UTC(UTCBirthday[2], UTCBirthday[0] - 1, UTCBirthday[1])) ?? null;
+			const parsedBirthday =
+				new Date(Date.UTC(UTCBirthday[2], UTCBirthday[0] - 1, UTCBirthday[1])) ?? null;
 
-			if (email && email !== $user.user?.email){
-				await updateEmail($user.user, email);
-				await sendEmailVerification($user.user);
+			let accountPromise = [];
+
+			if (email && email !== $user.user?.email) {
+				accountPromise.push(updateEmail($user.user, email));
+				accountPromise.push(sendEmailVerification($user.user));
 			}
-			if (password){
-				await updatePassword($user.user, password);
+			if (password) {
+				accountPromise.push(updatePassword($user.user, password));
 			}
-			if (parsedBirthday){
-				await setDoc(doc(db, "users", $user.user.uid, "private/info"), { birthday: Timestamp.fromDate(parsedBirthday) }, { merge: true });
+			if (parsedBirthday) {
+				accountPromise.push(
+					setDoc(
+						doc(db, 'users', $user.user.uid, 'private/info'),
+						{ birthday: Timestamp.fromDate(parsedBirthday) },
+						{ merge: true }
+					)
+				);
 			}
 
-			invalidSettings = '';
+			await Promise.allSettled(accountPromise);
 			saveSuccess = true;
 		} catch (error) {
 			({ message: invalidSettings } = error);
-			if (invalidSettings == "Firebase: Error (auth/requires-recent-login)."){
-				invalidSettings = "Requires recent login to update credentials. Please login again.";
+			if (invalidSettings == 'Firebase: Error (auth/requires-recent-login).') {
+				invalidSettings =
+					'Requires recent login to update credentials. Please logout and login again.';
 			}
 			console.error(error);
 		} finally {
@@ -91,24 +104,23 @@
 </script>
 
 <section class="settings-panel">
-	{#key saveSuccess}
-		{#if saveSuccess}
-			<InlineNotification
-				lowContrast
-				kind="success"
-				title="Successfully Saved Profile Changes"
-				timeout={5000}
-				style="flex-shrink: 0; align-items: center;"
-			/>
-		{/if}
-	{/key}
 	<Tile light style="overflow: auto; height: 100%;">
 		<Form>
+			{#key saveSuccess}
+				{#if saveSuccess}
+					<InlineNotification
+						lowContrast
+						kind="success"
+						title="Successfully Updated Account Credentials"
+						timeout={3000}
+						style="flex-shrink: 0; align-items: center; margin-top: 0;"
+					/>
+				{/if}
+			{/key}
 			<FormGroup class="no-select" legendText="Account Credentials">
 				<FluidForm>
 					<TextInput
 						bind:value={email}
-						light
 						labelText="Email"
 						placeholder="Enter new email..."
 						required
@@ -116,7 +128,6 @@
 					<PasswordInput
 						bind:value={password}
 						required
-						light
 						type="password"
 						labelText="Password"
 						placeholder="Enter new password..."
@@ -136,7 +147,6 @@
 			-->
 			<FormGroup>
 				<DatePicker
-					light
 					dateFormat="m/d/Y"
 					datePickerType="single"
 					bind:value={birthday}
