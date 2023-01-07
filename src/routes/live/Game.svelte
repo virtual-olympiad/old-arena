@@ -72,6 +72,10 @@
 	$: (problemAnswers || true) && updateAnswers();
 
 	const updateAnswers = async () => {
+		if (!problemAnswers.length){
+			return;
+		}
+
 		savingAnswers = true;
 
 		try {
@@ -106,9 +110,22 @@
 	};
 
 	onMount(() => {
-		console.log(solutions);
 		updateTimer();
 
+		// Check if answers saved from previous join
+		onValue(
+			ref(rtdb, 'gameData/' + $room?.roomId + '/responses/' + $user.user.uid + '/answers'),
+			async (snapshot) => {
+				if (!snapshot.exists()) {
+					return;
+				}
+
+				problemAnswers = snapshot.val();
+			},
+			{ onlyOnce: true }
+		);
+
+		// Initialize <Game>
 		onValue(
 			ref(rtdb, 'gameData/' + $room?.roomId + '/data'),
 			async (snapshot) => {
@@ -126,7 +143,9 @@
 					};
 				});
 
-				problemAnswers = new Array(problems.length).fill('');
+				if (!problemAnswers.length){
+					problemAnswers = new Array(problems.length).fill('');
+				}
 			},
 			{ onlyOnce: true }
 		);
@@ -138,7 +157,7 @@
 	});
 
 	let submitted = false;
-	let solutions: any[];
+	let solutions: any[] = [];
 	let contestData: any;
 
 	const updateSubmission = () => {
