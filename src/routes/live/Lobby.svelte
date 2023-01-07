@@ -93,10 +93,10 @@
 
 <svelte:window bind:innerWidth />
 
-<section class="lobby-panel" style={startingGame ? "margin: 1rem;":""}>
+<section class="lobby-panel" style={startingGame ? "padding: 1rem;":""}>
 	{#if startingGame}
 		<ProgressBar
-			style="width: min(672px, 100%)"
+			style="width: min(672px, 100%);"
 			labelText="Loading Game"
 			helperText="Generating Problems..."
 		/>
@@ -105,7 +105,7 @@
 			style="width: 100%; height: 100%; display: flex; align-items: center;"
 			class="live-panel-tile"
 		>
-			<section class="users-panel">
+			<aside class="users-panel">
 				<h4>{$room.roomData?.name}</h4>
 				<div class="room-invite">
 					<h6>Invite Code:</h6>
@@ -116,7 +116,7 @@
 					<Button on:click={exitRoom} kind="secondary" icon={Exit} disabled={loading}>Exit Room</Button>
 					<Button on:click={startGame} icon={CaretRight} disabled={loading || !$room.isHost}>Start Game</Button>
 				</ButtonSet>
-			</section>
+			</aside>
 
 			<section class="settings-panel">
 				<Tabs type="container" class="flex-tabs">

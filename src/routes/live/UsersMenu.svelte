@@ -3,7 +3,7 @@
 	import { room, app } from '$lib/sessionStore';
 	import { Link, Tag, Tile, truncate } from 'carbon-components-svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { onValue, ref } from 'firebase/database';
 	import { fetchProfile, rtdb } from '$lib/firebase';
 
@@ -11,7 +11,7 @@
 
 	const getUser = async (socketId: string, userId: string) => {
 		return {
-			...await fetchProfile(userId, true),
+			...(await fetchProfile(userId, true)),
 			socketId
 		};
 	};
@@ -41,49 +41,61 @@
 			}
 		}
 	);
+	let elapsed: number, frame: any;
 
-	onDestroy(usersSubscription);
+	onMount(() => {
+		(function update() {
+			frame = requestAnimationFrame(update);
 
-	$: cardShadowColor = $app.theme == 'g90' ? "#0160e2":"#5195f0";
+			elapsed = window.performance.now();
+		})();
+
+		return ()=> {
+			cancelAnimationFrame(frame);
+		};
+	});
+
+	onDestroy(() => {
+		usersSubscription();
+	});
+
+	$: cardShadowColor = $app.theme == 'g90' ? '#0160e2' : '#5195f0';
 </script>
 
 <section class="users-menu no-select">
 	{#each users as user, i}
 		<Tile
 			light
-			style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; overflow-x: auto; margin: .25rem 0; ${
+			style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; margin: .25rem 0; 
+			${
 				user.socketId == socket.id
-					? `box-shadow: 0 0 10px 1px ${cardShadowColor}`
-					: `box-shadow: 0 0 5px 0 ${cardShadowColor}`
+					? `box-shadow: 0 0 ${7 + Math.sin(elapsed/300) * 3}px 1px ${cardShadowColor}`
+					: `box-shadow: 0 0 3px 0 ${cardShadowColor}`
 			}`}
 		>
-			<div
-				style={`display: flex; align-items: ${
-					$room.roomData.host.userId == user.uid ? 'flex-start' : 'center'
-				};`}
-			>
+			<div class="user-avatar-wrapper">
+				{#if $room.roomData?.host.userId == user.uid}
+					<Tag
+						style="position: absolute; display: block; bottom: -20%; left: 0; right: 0; width: fit-content; margin: auto;"
+						type="high-contrast">Host</Tag
+					>
+				{/if}
 				{#if user.pfp}
 					<img src={user.pfp} alt="Avatar" class="user-avatar" />
 				{/if}
-				<div style="margin: 0 .5rem 0 1rem;">
-					<div
-						style={`font-size: 16px; ${
-							$room.roomData.host.userId == user.uid ? '' : 'margin-bottom: .25rem;'
-						}`}
-						use:truncate
-					>
-						{user.display_name}
-						{#if $room.roomData?.host.userId == user.uid}
-							<Tag type="high-contrast">Host</Tag>
-						{/if}
-					</div>
+			</div>
+			<div class="user-info">
+				<div style={`font-size: 16px; max-width: 130px;`} use:truncate>
+					{user.display_name}
+				</div>
 
-					<div style="color: #bbbbbb;">
-						@{user.username}
-					</div>
+				<div style="color: #bbbbbb; max-width: 130px;" use:truncate>
+					@{user.username}
 				</div>
 			</div>
-			<Link href={`/profile/${user.uid}`} icon={UserAvatarFilledAlt}>Profile</Link>
+			<Link style="margin-left: auto;" href={`/profile/${user.uid}`} icon={UserAvatarFilledAlt}
+				>Profile</Link
+			>
 		</Tile>
 	{/each}
 </section>
@@ -98,11 +110,28 @@
 		padding: 0.5rem;
 		overflow: auto;
 
-		.user-avatar {
-			object-fit: contain;
+		.user-avatar-wrapper {
+			flex: 0 0 auto;
+			position: relative;
 			height: 4em;
-			border-radius: 50%;
+			width: 4em;
 			outline: 1px solid #aaaaaa;
+			border-radius: 50%;
+
+			.user-avatar {
+				height: 100%;
+				width: 100%;
+				border-radius: 50%;
+				object-fit: contain;
+			}
+		}
+
+		.user-info {
+			margin: 0 0.5rem 0 1rem;
+
+			> div {
+				padding: 0.2rem 0;
+			}
 		}
 	}
 

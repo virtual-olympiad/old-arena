@@ -299,7 +299,7 @@
 		style="width: 100%; height: 100%; display: flex; align-items: center;"
 		class="game-panel-tile"
 	>
-		<section class="details-panel">
+		<aside class="details-panel">
 			<div class="mobile-collapse">
 				<Button
 					kind="ghost"
@@ -389,7 +389,7 @@
 					>
 				{/if}
 			</ButtonSet>
-		</section>
+		</aside>
 		<div class="exam-panel">
 			<article class="info-panel no-select">
 				<Tile light style="width: 100%; height: 100%; display: flex; align-items: center;">
