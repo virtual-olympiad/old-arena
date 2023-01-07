@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { socket } from '$lib/socket';
-	import { room } from '$lib/sessionStore';
+	import { room, app } from '$lib/sessionStore';
 	import { Link, Tag, Tile, truncate } from 'carbon-components-svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 	import { onDestroy } from 'svelte';
@@ -43,6 +43,8 @@
 	);
 
 	onDestroy(usersSubscription);
+
+	$: cardShadowColor = $app.theme == 'g90' ? "#0160e2":"#5195f0";
 </script>
 
 <section class="users-menu no-select">
@@ -51,8 +53,8 @@
 			light
 			style={`width: 100%; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; overflow-x: auto; margin: .25rem 0; ${
 				user.socketId == socket.id
-					? 'box-shadow: 0 0 10px 1px #0160e2'
-					: 'box-shadow: 0 0 5px 0 #0160e2'
+					? `box-shadow: 0 0 10px 1px ${cardShadowColor}`
+					: `box-shadow: 0 0 5px 0 ${cardShadowColor}`
 			}`}
 		>
 			<div
