@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import { browserLocalPersistence, getAuth, setPersistence } from 'firebase/auth';
 import { collection, doc, getDoc, getFirestore } from 'firebase/firestore';
 import { getDatabase } from 'firebase/database';
@@ -15,7 +15,7 @@ const firebaseConfig = {
 	measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();initializeApp(firebaseConfig);
 const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence);
 
@@ -89,6 +89,10 @@ const fetchProfile = async (uid: string, hasAvatar = false) => {
 	} catch (error) {
 		console.error(error);
 	} finally {
+		if (!username){
+			return false;
+		}
+
 		return {
 			uid,
 			pfp,

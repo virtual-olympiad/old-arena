@@ -76,6 +76,7 @@
 			<div class="user-avatar-wrapper">
 				{#if $room.roomData?.host.userId == user.uid}
 					<Tag
+						size="sm"
 						style="position: absolute; display: block; bottom: -20%; left: 0; right: 0; width: fit-content; margin: auto;"
 						type="high-contrast">Host</Tag
 					>
