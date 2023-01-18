@@ -16,19 +16,25 @@
 
 	import UserProfile from 'carbon-icons-svelte/lib/UserProfile.svelte';
 	import Settings from 'carbon-icons-svelte/lib/Settings.svelte';
-	import Upgrade from 'carbon-icons-svelte/lib/Upgrade.svelte';
+	import PaintBrush from 'carbon-icons-svelte/lib/PaintBrush.svelte';
 
 	import Login from 'carbon-icons-svelte/lib/Login.svelte';
 	import Logout from 'carbon-icons-svelte/lib/Logout.svelte';
 
 	import Home from 'carbon-icons-svelte/lib/Home.svelte';
 	import LogoDiscord from 'carbon-icons-svelte/lib/LogoDiscord.svelte';
+	import LogoYoutube from 'carbon-icons-svelte/lib/LogoYoutube.svelte';
+	import LogoGithub from 'carbon-icons-svelte/lib/LogoGithub.svelte';
+	import LogoInstagram from 'carbon-icons-svelte/lib/LogoInstagram.svelte';
+	
 	import UserFollow from 'carbon-icons-svelte/lib/UserFollow.svelte';
 	import Money from 'carbon-icons-svelte/lib/Money.svelte';
 	import Debug from 'carbon-icons-svelte/lib/Debug.svelte';
 	import UnknownFilled from 'carbon-icons-svelte/lib/UnknownFilled.svelte';
 	import Book from 'carbon-icons-svelte/lib/Book.svelte';
 	import InformationSquare from 'carbon-icons-svelte/lib/InformationSquare.svelte';
+	import UserAdmin from 'carbon-icons-svelte/lib/UserAdmin.svelte';
+	import Partnership from 'carbon-icons-svelte/lib/Partnership.svelte';
 
 	import AsleepFilled from 'carbon-icons-svelte/lib/AsleepFilled.svelte';
 	import Awake from 'carbon-icons-svelte/lib/Awake.svelte';
@@ -45,7 +51,7 @@
 	let isOpen2 = false;
 
 	const toggleTheme = () => {
-		$app.theme = ($app.theme == 'g90' ? 'g10':'g90');
+		$app.theme = $app.theme == 'g90' ? 'g10' : 'g90';
 	};
 
 	const handleLogout = async () => {
@@ -86,25 +92,34 @@
 
 <Header href="/">
 	<svelte:fragment slot="platform">
-		<img src="/mea_logo.png" alt="MEA Logo" style="padding: .5rem 0; margin-right: .5rem; max-height: 100%"/> 
-		{innerWidth >= 672 ? "Virtual Olympiad":"VOLY"}
+		<img
+			src="/mea_logo.png"
+			alt="MEA Logo"
+			style="padding: .5rem; margin-right: .5rem; margin-left: -.5rem; height: 100%; aspect-ratio: 1/1"
+		/>
+		{innerWidth >= 672 ? 'Virtual Olympiad' : 'VOLY'}
 	</svelte:fragment>
 	<svelte:fragment slot="skip-to-content">
 		<SkipToContent />
 	</svelte:fragment>
 	<HeaderUtilities>
 		<HeaderGlobalAction icon={$app?.theme == 'g90' ? Awake : AsleepFilled} on:click={toggleTheme} />
-		<HeaderAction bind:isOpen={isOpen1} icon={UserAvatarFilledAlt} closeIcon={UserAvatarFilledAlt}>
+		<HeaderAction
+			bind:isOpen={isOpen1}
+			text={display_name || 'Guest'}
+			icon={UserAvatarFilledAlt}
+			closeIcon={UserAvatarFilledAlt}
+		>
 			<HeaderPanelLinks>
-				<HeaderPanelLink style="word-break: break-all; height: fit-content;"
-					>{display_name || 'Guest' + (socket.id ? '_' + socket.id: '')}</HeaderPanelLink
-				>
 				<HeaderPanelDivider>Account</HeaderPanelDivider>
 				<HeaderPanelLink href="/profile" target="_blank" class="header-icon-wrapper"
 					><UserProfile class="header-icon" />Profile</HeaderPanelLink
 				>
 				<HeaderPanelLink href="/settings" target="_blank" class="header-icon-wrapper"
 					><Settings class="header-icon" />Settings</HeaderPanelLink
+				>
+				<HeaderPanelLink href="/shop" class="header-icon-wrapper"
+					><PaintBrush class="header-icon" />Customize</HeaderPanelLink
 				>
 				{#if $user.user}
 					<HeaderPanelLink on:click={handleLogout} class="header-icon-wrapper"
@@ -115,35 +130,10 @@
 						><Login class="header-icon" />Login</HeaderPanelLink
 					>
 				{/if}
-				<HeaderPanelDivider />
-				<HeaderPanelLink href="/premium" target="_blank" class="header-icon-wrapper"
-					><Upgrade class="header-icon" />VOLY Premium</HeaderPanelLink
-				>
-				<HeaderPanelLink href="/donate" target="_blank" class="header-icon-wrapper"
-					><Money class="header-icon" />Donate</HeaderPanelLink
-				>
 			</HeaderPanelLinks>
 		</HeaderAction>
 		<HeaderAction bind:isOpen={isOpen2} icon={Menu}>
 			<HeaderPanelLinks>
-				<HeaderPanelDivider>Math et al</HeaderPanelDivider>
-				<HeaderPanelLink href="https://mathetal.org" target="_blank" class="header-icon-wrapper"
-					><Home class="header-icon" />Homepage</HeaderPanelLink
-				>
-				<HeaderPanelLink
-					href="https://mathetal.org/discord"
-					target="_blank"
-					class="header-icon-wrapper"><LogoDiscord class="header-icon" />Discord</HeaderPanelLink
-				>
-				<HeaderPanelLink
-					href="https://mathetal.org/apply"
-					target="_blank"
-					class="header-icon-wrapper"><UserFollow class="header-icon" />Join Us</HeaderPanelLink
-				>
-				<HeaderPanelLink href="/donate" target="_blank" class="header-icon-wrapper"
-					><Money class="header-icon" />Donate</HeaderPanelLink
-				>
-
 				<HeaderPanelDivider>Help</HeaderPanelDivider>
 				<HeaderPanelLink href="/about" class="header-icon-wrapper"
 					><InformationSquare class="header-icon" />About</HeaderPanelLink
@@ -154,8 +144,47 @@
 				<HeaderPanelLink href="/about#faq" class="header-icon-wrapper"
 					><UnknownFilled class="header-icon" />FAQ</HeaderPanelLink
 				>
-				<HeaderPanelLink class="header-icon-wrapper"
+				<HeaderPanelLink href="https://github.com/Math-et-al/vo/issues" class="header-icon-wrapper"
 					><Debug class="header-icon" />Report a Bug</HeaderPanelLink
+				>
+
+				<!-- Support -->
+				<HeaderPanelDivider>Support Us</HeaderPanelDivider>
+				<HeaderPanelLink
+					href="https://mathetal.org/apply"
+					target="_blank"
+					class="header-icon-wrapper"><UserFollow class="header-icon" />Join Us</HeaderPanelLink
+				>
+				<HeaderPanelLink href="/donate" target="_blank" class="header-icon-wrapper"
+					><Money class="header-icon" />Donate</HeaderPanelLink
+				>
+				<HeaderPanelLink href="/sponsor" target="_blank" class="header-icon-wrapper"
+					><Partnership class="header-icon" />Sponsor Us</HeaderPanelLink
+				>
+				<!-- Math et al -->
+				<HeaderPanelDivider>Community</HeaderPanelDivider>
+				<HeaderPanelLink href="https://mathetal.org" target="_blank" class="header-icon-wrapper"
+					><Home class="header-icon" />Math et al</HeaderPanelLink
+				>
+				<HeaderPanelLink
+					href="https://discord.gg/3eXC9UE6rT"
+					target="_blank"
+					class="header-icon-wrapper"><LogoDiscord class="header-icon" />Discord</HeaderPanelLink
+				>
+				<HeaderPanelLink
+					href="https://github.com/Math-et-al"
+					target="_blank"
+					class="header-icon-wrapper"><LogoGithub class="header-icon" />Github</HeaderPanelLink
+				>
+				<HeaderPanelLink
+					href="https://www.instagram.com/math_et_al"
+					target="_blank"
+					class="header-icon-wrapper"><LogoYoutube class="header-icon" />Youtube</HeaderPanelLink
+				>
+				<HeaderPanelLink
+					href="https://www.youtube.com/@math_et_al"
+					target="_blank"
+					class="header-icon-wrapper"><LogoInstagram class="header-icon" />Instagram</HeaderPanelLink
 				>
 			</HeaderPanelLinks>
 		</HeaderAction>
