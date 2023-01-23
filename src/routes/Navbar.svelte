@@ -8,11 +8,14 @@
 		HeaderPanelDivider,
 		HeaderPanelLink,
 		SkipToContent,
-		CodeSnippet
+		CodeSnippet,
+		HeaderActionLink
 	} from 'carbon-components-svelte';
 	import SettingsAdjust from 'carbon-icons-svelte/lib/SettingsAdjust.svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
 	import Menu from 'carbon-icons-svelte/lib/Menu.svelte';
+
+	import DataBase from "carbon-icons-svelte/lib/DataBase.svelte";
 
 	import UserProfile from 'carbon-icons-svelte/lib/UserProfile.svelte';
 	import Settings from 'carbon-icons-svelte/lib/Settings.svelte';
@@ -104,6 +107,7 @@
 	</svelte:fragment>
 	<HeaderUtilities>
 		<HeaderGlobalAction icon={$app?.theme == 'g90' ? Awake : AsleepFilled} on:click={toggleTheme} />
+		<HeaderActionLink icon={DataBase} target="_blank" href="https://vodb.mathetal.org" />
 		<HeaderAction
 			bind:isOpen={isOpen1}
 			text={display_name || 'Guest'}
