@@ -2,6 +2,12 @@
 [discord]: https://redirect.mathetal.org/discord "Discord Server Invite"
 [vodb]: https://vodb.mathetal.org "VODB - Virtual Olympiad Database"
 
+# NOTE: Project Archived
+
+>⚠️ **IMPORTANT:** This repository is now archived and the platform servers are offline. Please find the new version of Arena [here](arena.volympiad.org).
+
+---
+
 # VOLY
 
 https://voly.mathetal.org
